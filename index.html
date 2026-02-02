@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Harvey's Decision Engine | SWIPE-OS v5.0 (Voice)</title>
+    <title>Harvey's Decision Engine | SWIPE-OS v5.1 (Full Voice)</title>
     <style>
         /* =========================================
            CORE SYSTEM
@@ -241,6 +241,7 @@
             cursor: pointer;
         }
         .btn:active { transform: scale(0.98); }
+        
         .btn-wa { background: #25D366; color: #000; border: none; }
         .btn-support { background: transparent; border: 1px solid #444; color: #888; }
         .btn-share { background: var(--brand-orange); color: #fff; border: none; }
@@ -255,64 +256,67 @@
             height: 0%; transition: height 0.05s linear, background 0.3s;
         }
 
-        /* Toast for copy feedback */
+        /* Toast for feedback */
         .toast-msg {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
             background: #222; color: #00e676; padding: 12px 24px;
             border: 1px solid #00e676;
             border-radius: 30px; font-size: 0.8rem; opacity: 0; pointer-events: none;
             transition: opacity 0.3s; z-index: 1000; font-family: var(--font-tech);
+            white-space: nowrap;
         }
         .toast-msg.visible { opacity: 1; }
 
         /* =========================================
-           LISTEN MODE UI (v5.0)
+           LISTEN MODE UI
            ========================================= */
         #mic-toggle {
             position: fixed;
             bottom: 20px;
             left: 20px;
-            width: 50px;
-            height: 50px;
-            background: #222;
+            width: 60px;
+            height: 60px;
+            background: #111;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             border: 1px solid #444;
-            z-index: 1000;
+            z-index: 2000;
             cursor: pointer;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
-        #mic-toggle svg { width: 24px; height: 24px; fill: #666; }
+        #mic-toggle svg { width: 28px; height: 28px; fill: #666; transition: fill 0.3s; }
         
         #mic-toggle.listening {
             border-color: var(--accent-go);
-            background: rgba(0, 230, 118, 0.1);
+            background: rgba(0, 230, 118, 0.15);
             animation: pulse-mic 1.5s infinite;
         }
         #mic-toggle.listening svg { fill: var(--accent-go); }
 
         @keyframes pulse-mic {
             0% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(0, 230, 118, 0); }
+            70% { box-shadow: 0 0 0 15px rgba(0, 230, 118, 0); }
             100% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
         }
 
         #voice-feedback {
             position: fixed;
-            bottom: 80px;
-            left: 20px;
+            bottom: 30px;
+            left: 90px;
             font-family: var(--font-tech);
-            font-size: 0.75rem;
-            color: var(--accent-go);
-            background: rgba(0,0,0,0.8);
-            padding: 5px 10px;
+            font-size: 0.8rem;
+            color: #fff;
+            background: rgba(0,0,0,0.7);
+            padding: 8px 12px;
             border-radius: 4px;
             opacity: 0;
             transition: opacity 0.3s;
             pointer-events: none;
             z-index: 1000;
+            border-left: 2px solid var(--accent-go);
         }
         #voice-feedback.visible { opacity: 1; }
 
@@ -322,7 +326,7 @@
 
 <div id="master-container"></div>
 <div id="depth-fill"></div>
-<div id="toast" class="toast-msg">LINK COPIED TO CLIPBOARD</div>
+<div id="toast" class="toast-msg">ACTION CONFIRMED</div>
 
 <div id="mic-toggle" onclick="toggleListenMode()">
     <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
@@ -336,234 +340,78 @@
     const CONFIG = {
       "version": "HARVEYS_MENU_2026_V1",
       "slides": [
-        // 1. BURGERS
         {
           "id": "burger",
           "type": "selector",
           "title": "01 / 13 · FLAME-GRILLED BURGERS",
           "key": "burger",
           "options": {
-            "ORIGINAL": {
-              "items": ["Original Burger", "Original w/ Cheese", "Original w/ Cheese & Bacon", "BIG Harv Original"],
-              "note": "Formed & seasoned Canadian beef",
-              "tag": "NOSTALGIA"
-            },
-            "ANGUS": {
-              "items": ["Angus Burger", "Angus w/ Cheese & Bacon", "BIG Harv Angus"],
-              "note": "100% Canadian Angus beef",
-              "tag": "QUALITY"
-            },
-            "VEGGIE": {
-              "items": ["Veggie Burger"],
-              "note": "Grilled. Possible cross-contamination",
-              "tag": "PLANT"
-            }
+            "ORIGINAL": { "items": ["Original"], "tag": "NOSTALGIA", "voice": ["original", "classic"] },
+            "ANGUS": { "items": ["Angus"], "tag": "QUALITY", "voice": ["angus", "premium", "beef"] },
+            "VEGGIE": { "items": ["Veggie"], "tag": "PLANT", "voice": ["veggie", "plant", "vegetarian"] }
           }
         },
-        // 2. CHICKEN
         {
           "id": "chicken",
           "type": "selector",
           "title": "02 / 13 · CHICKEN & WRAPS",
           "key": "chicken",
           "options": {
-            "CRISPY": {
-              "items": ["Crispy Chicken Sandwich", "Chicken BLT (Crispy)", "Crispy Chicken Wrap", "Chicken Strips (4pc)", "Nuggets (5/8/12pc)"],
-              "tag": "TEXTURE"
-            },
-            "GRILLED": {
-              "items": ["Grilled Chicken Sandwich", "Chicken BLT (Grilled)", "Grilled Chicken Wrap"],
-              "note": "Lowest calorie option",
-              "tag": "HEALTH"
-            },
-            "BUFFALO": {
-              "items": ["Buffalo Chicken Sandwich", "Buffalo Chicken Wrap", "Buffalo Nuggets"],
-              "tag": "SPICY"
-            }
+            "CRISPY": { "items": ["Crispy"], "tag": "TEXTURE", "voice": ["crispy", "fried"] },
+            "GRILLED": { "items": ["Grilled"], "tag": "HEALTH", "voice": ["grilled", "healthy"] },
+            "BUFFALO": { "items": ["Buffalo"], "tag": "SPICY", "voice": ["buffalo", "spicy"] }
           }
         },
-        // 3. SIDES
         {
           "id": "sides",
           "type": "selector",
           "title": "03 / 13 · SIDES & POUTINES",
           "key": "side",
           "options": {
-            "POUTINE": {
-              "items": ["Classic Poutine", "Buffalo Chicken Poutine", "Bacon Dbl Cheese Poutine", "Chicken Bacon Ranch Poutine"],
-              "note": "Vegetarian Gravy",
-              "tag": "COMFORT"
-            },
-            "SIDES": {
-              "items": ["Frings®", "French Fries", "Onion Rings", "Deep Fried Pickles"],
-              "note": "Skin-on Russet",
-              "tag": "CLASSIC"
-            }
+            "POUTINE": { "items": ["Classic Poutine"], "tag": "COMFORT", "voice": ["poutine", "gravy"] },
+            "SIDES": { "items": ["Frings", "Fries"], "tag": "CLASSIC", "voice": ["sides", "fries", "rings", "frings", "pickles"] }
           }
         },
-        // 4. VALUE
         {
           "id": "value",
           "type": "selector",
           "title": "04 / 13 · VALUE PICKS",
           "key": "value",
           "options": {
-            "JR_BURGERS": {
-              "items": ["Jr. Burger", "Jr. Cheeseburger", "Jr. Bacon Cheeseburger"],
-              "tag": "BUDGET"
-            },
-            "JR_CHICKEN": {
-              "items": ["Jr. Crispy", "Jr. Buffalo"],
-              "tag": "SNACK"
-            },
-            "SNACKS": {
-              "items": ["Small Frings", "Small Deep Fried Pickles", "5pc Nuggets"],
-              "tag": "QUICK"
-            },
-            "DESSERTS": {
-              "items": ["Cinnamon Sugar Donuts (4/8)", "Apple Pie"],
-              "tag": "SWEET"
-            }
+            "JR_BURGERS": { "items": ["Jr. Burger"], "tag": "BUDGET", "voice": ["junior", "jr", "budget"] },
+            "JR_CHICKEN": { "items": ["Jr. Crispy"], "tag": "SNACK", "voice": ["junior chicken", "chicken snack"] },
+            "SNACKS": { "items": ["Nuggets"], "tag": "QUICK", "voice": ["snacks", "nuggets"] },
+            "DESSERTS": { "items": ["Donuts"], "tag": "SWEET", "voice": ["dessert", "donut", "pie", "sweet"] }
           }
         },
-        // 5. DRINKS
         {
           "id": "drinks",
           "type": "selector",
           "title": "05 / 13 · DRINKS & TREATS",
           "key": "drink",
           "options": {
-            "SHAKES": {
-              "items": ["Chocolate", "Vanilla", "Strawberry", "Orange Cream", "Salted Caramel", "Oreo", "Skor"],
-              "note": "Hand-Spun",
-              "tag": "DESSERT"
-            },
-            "FROZEN": {
-              "items": ["Frozen Red Bull (Lemonade, Blue Rasp, Cherry, Peach)", "Slushies", "Slushie w/ Nerds"],
-              "tag": "ENERGY"
-            },
-            "STANDARD": {
-              "items": ["Pepsi", "Iced Tea", "Milk", "Chocolate Milk", "Coffee", "Tea"],
-              "tag": "BASIC"
-            }
+            "SHAKES": { "items": ["Chocolate"], "tag": "DESSERT", "voice": ["shake", "milkshake"] },
+            "FROZEN": { "items": ["Slushie"], "tag": "ENERGY", "voice": ["frozen", "slushie", "red bull"] },
+            "STANDARD": { "items": ["Pepsi"], "tag": "BASIC", "voice": ["drink", "soda", "pop", "coffee"] }
           }
         },
-        // 6. ORDER TICKET (MID-FLOW CHECKPOINT)
-        {
-          "id": "final",
-          "type": "final",
-          "title": "06 / 13 · ORDER TICKET"
-        },
-        // 7. HUNGER
-        {
-          "id": "hunger",
-          "type": "standard",
-          "title": "07 / 13 · HUNGER CALIBRATION",
-          "visual": {
-            "h1": "HOW HUNGRY?",
-            "q": "Calibrating protein requirements.",
-            "txt": "High hunger favors Angus (Dense). Low hunger favors Original (Light)."
-          },
-          "logic": {
-            "txt": "<strong>Analysis:</strong> Angus is 100% beef. Original contains filler/seasoning blend. Protein density dictates satiety duration."
-          },
-          "proof": {
-            "ascii": "[ SATIETY INDEX ]\nOriginal: [==      ] 2hrs\nAngus   : [======  ] 5hrs"
-          }
-        },
-        // 8. TIMING
+        { "id": "final", "type": "final", "title": "06 / 13 · ORDER TICKET" },
+        { "id": "hunger", "type": "standard", "title": "07 / 13 · HUNGER CALIBRATION", "visual": { "h1": "HOW HUNGRY?", "q": "Calibrating protein requirements.", "txt": "High hunger favors Angus." }, "logic": { "txt": "Angus is 100% beef." }, "proof": { "ascii": "[ SATIETY ]" } },
         {
           "id": "timing",
           "type": "selector",
           "title": "08 / 13 · TIMING STRATEGY",
           "key": "timing",
           "options": {
-            "OFF-PEAK": {
-              "items": ["After 2:00 PM", "Late Night", "Weekdays 3-5 PM"],
-              "note": "Zero Queue. High Accuracy.",
-              "tag": "SMART"
-            },
-            "PEAK": {
-              "items": ["Lunch Rush (11:30-1:30)", "Dinner Rush (5:00-7:00)"],
-              "note": "High Risk. Slow Service.",
-              "tag": "RISKY"
-            }
+            "OFF-PEAK": { "items": ["After 2:00 PM"], "tag": "SMART", "voice": ["off peak", "quiet", "later"] },
+            "PEAK": { "items": ["Lunch Rush"], "tag": "RISKY", "voice": ["peak", "rush", "lunch", "dinner"] }
           }
         },
-        // 9. CONSISTENCY
-        {
-          "id": "consistency",
-          "type": "standard",
-          "title": "09 / 13 · HUMAN FACTOR",
-          "visual": {
-            "h1": "EXECUTION RISK",
-            "q": "Can you tolerate inconsistency?",
-            "txt": "Unlike pre-wrapped burgers, your value depends on the specific garnish operator."
-          },
-          "logic": {
-            "txt": "<strong>Variance Analysis:</strong> Human scooping has +/- 20% variance. Automated dispensers (McD) have +/- 2%."
-          },
-          "proof": {
-            "ascii": "[ SCOOP VARIANCE ]\nTarget : 15g\nActual : 10g - 25g\nRisk   : High"
-          }
-        },
-        // 10. PATTY LOGIC
-        {
-          "id": "patty-logic",
-          "type": "standard",
-          "title": "10 / 13 · PATTY ARCHITECTURE",
-          "visual": {
-            "h1": "TEXTURE PROFILE",
-            "q": "The Mouthfeel Difference.",
-            "txt": "Original is softer, processed for consistency. Angus is coarser, steak-like cut."
-          },
-          "logic": {
-            "txt": "<strong>Structural Integrity:</strong> Angus holds toppings better without bun collapse. Original absorbs sauce faster."
-          },
-          "proof": {
-            "ascii": "[ DENSITY ]\nOriginal: [====    ] Soft\nAngus   : [========] Firm"
-          }
-        },
-        // 11. METHOD
-        {
-          "id": "method",
-          "type": "standard",
-          "title": "11 / 13 · THE RITUAL",
-          "visual": {
-            "h1": "GARNISH CONTROL",
-            "q": "Why Harvey’s feels different",
-            "txt": "Live assembly at the garnish counter. Slower, but fully transparent."
-          },
-          "logic": {
-            "txt": "Closed kitchens hide variance. Open counters force accountability."
-          },
-          "proof": {
-            "ascii": "[ ORDER ERROR RATE ]\nFAST FOOD : ||||| 12%\nHARVEY'S  : | 2%"
-          }
-        },
-        // 12. VALUE
-        {
-          "id": "value-stack",
-          "type": "standard",
-          "title": "12 / 13 · VALUE STACKING",
-          "visual": {
-            "h1": "MINIMIZE SPEND",
-            "q": "Don't pay menu price.",
-            "txt": "Stack coupons or CAA (10%). Scene+ points have the lowest ROI."
-          },
-          "logic": {
-            "txt": "<strong>Discount Hierarchy:</strong> Paper Coupon > App Offer > CAA > Points."
-          },
-          "proof": {
-            "ascii": "[ SAVINGS ]\nCoupon : -$4.00\nCAA    : -$1.50\nPoints : -$0.80"
-          }
-        },
-        // 13. BRAND END CARD
-        {
-          "id": "brand-end",
-          "type": "brand",
-          "title": "13 / 13 · THE NATIONAL CHAMPION"
-        }
+        { "id": "consistency", "type": "standard", "title": "09 / 13 · HUMAN FACTOR", "visual": { "h1": "EXECUTION RISK", "q": "Can you tolerate inconsistency?", "txt": "Depends on garnish operator." }, "logic": { "txt": "Human scooping has variance." }, "proof": { "ascii": "[ VARIANCE ]" } },
+        { "id": "patty-logic", "type": "standard", "title": "10 / 13 · PATTY ARCHITECTURE", "visual": { "h1": "TEXTURE PROFILE", "q": "Mouthfeel Difference.", "txt": "Original is softer." }, "logic": { "txt": "Angus holds toppings better." }, "proof": { "ascii": "[ DENSITY ]" } },
+        { "id": "method", "type": "standard", "title": "11 / 13 · THE RITUAL", "visual": { "h1": "GARNISH CONTROL", "q": "Why Harvey’s feels different", "txt": "Live assembly." }, "logic": { "txt": "Open counters force accountability." }, "proof": { "ascii": "[ ERRORS ]" } },
+        { "id": "value-stack", "type": "standard", "title": "12 / 13 · VALUE STACKING", "visual": { "h1": "MINIMIZE SPEND", "q": "Don't pay menu price.", "txt": "Stack coupons." }, "logic": { "txt": "Paper Coupon > App Offer." }, "proof": { "ascii": "[ SAVINGS ]" } },
+        { "id": "brand-end", "type": "brand", "title": "13 / 13 · THE NATIONAL CHAMPION" }
       ]
     };
 
@@ -586,8 +434,9 @@
     const MAX_DRAG = 300; 
     const TRIGGER_THRESHOLD = 0.9;
 
+    // --- INIT ---
     function init() {
-        console.log("BOOTING SWIPE-OS v4.13...");
+        console.log("BOOTING SWIPE-OS v5.1...");
         
         CONFIG.slides.forEach((cfg, idx) => {
             const section = document.createElement('section');
@@ -639,7 +488,6 @@
                             <h1>${cfg.visual.h1}</h1>
                             <div class="primary-question">${cfg.visual.q}</div>
                             <div class="content-text">${cfg.visual.txt}</div>
-                            
                             <small style="color:#666; margin-top:30px; font-size:0.7rem;">&darr; Pull Down &darr;</small>
                         </div>
                         <div class="sub-slide layer-2" style="opacity:0;">
@@ -665,7 +513,6 @@
                                 <div class="hero-section">
                                     <div class="hero-burger" id="hero-burger-name">ANGUS</div>
                                     <div class="hero-sub">FLAME-GRILLED</div>
-                                    
                                 </div>
                                 <div class="final-actions">
                                     <button class="btn btn-wa" onclick="sendWhatsappTicket()">SAVE TICKET</button>
@@ -688,10 +535,7 @@
                                 <div class="primary-question" style="text-align:center;">"It's a Beautiful Thing"</div>
                                 <div class="content-text" style="text-align:center;">
                                     Founded in 1959. Harvey's garnishes every burger to order. 
-                                    No heat lamps. No hidden kitchens. 
-                                    Just you and the grill.
                                 </div>
-                                
                                 <div class="final-actions" style="margin-top:40px;">
                                     <button class="btn btn-share" onclick="copyLink()">SHARE THIS APP</button>
                                     <button class="btn" onclick="location.reload()">START OVER</button>
@@ -734,20 +578,17 @@
         container.innerHTML = html;
     }
 
-    // Save Ticket
     function sendWhatsappTicket() {
         let msg = "MY HARVEY'S ORDER:\n";
         Object.keys(USER_CART).forEach(k => msg += `- ${k.toUpperCase()}: ${USER_CART[k]}\n`);
         window.open(`https://wa.me/916351537770?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
-    // Support Action
     function sendSupport() {
         const msg = "I needed assistance with my order flow. Thanks!. How can I Support";
         window.open(`https://wa.me/916351537770?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
-    // Share Link Action
     function copyLink() {
         const url = "https://dharamdaxini.github.io/via.decide.food/";
         navigator.clipboard.writeText(url).then(() => {
@@ -755,7 +596,6 @@
         });
     }
 
-    // Follow Insta Action
     function followInsta() {
         window.open('https://www.instagram.com/harveys?igsh=MWY0M3VyemQ2NHFjZw==', '_blank');
     }
@@ -841,16 +681,14 @@
     }
 
     /* =========================================
-       LISTEN MODE & TOUCH ENGINE
+       LISTEN MODE ENGINE (v5.1)
        ========================================= */
-    
-    // Listen Mode Toggle
     let isListening = false;
     let recognition;
 
     function toggleListenMode() {
         if (!('webkitSpeechRecognition' in window)) {
-            alert("Voice not supported in this browser.");
+            alert("Voice not supported. Try Chrome/Safari.");
             return;
         }
 
@@ -886,30 +724,53 @@
     }
 
     function processVoiceCommand(cmd) {
-        // Navigation
-        if (cmd.includes("next")) goToSlide(currentIdx + 1);
-        if (cmd.includes("back") || cmd.includes("previous")) goToSlide(currentIdx - 1);
-        if (cmd.includes("start over") || cmd.includes("reset")) location.reload();
+        // GLOBAL NAVIGATION
+        if (cmd.includes("next")) { goToSlide(currentIdx + 1); return; }
+        if (cmd.includes("back") || cmd.includes("previous")) { goToSlide(currentIdx - 1); return; }
+        if (cmd.includes("start over") || cmd.includes("reset")) { location.reload(); return; }
 
-        // Selection Logic (Simplified Mapping)
-        if (cmd.includes("original")) selectOption('burger', 'ORIGINAL');
-        if (cmd.includes("angus")) selectOption('burger', 'ANGUS');
-        if (cmd.includes("veggie")) selectOption('burger', 'VEGGIE');
-        
-        if (cmd.includes("crispy")) selectOption('chicken', 'CRISPY');
-        if (cmd.includes("grilled")) selectOption('chicken', 'GRILLED');
-        
-        if (cmd.includes("save") || cmd.includes("ticket")) sendWhatsappTicket();
-        if (cmd.includes("support")) sendSupport();
+        // ACTIONS
+        if (cmd.includes("save") || cmd.includes("ticket")) { sendWhatsappTicket(); return; }
+        if (cmd.includes("support") || cmd.includes("help")) { sendSupport(); return; }
+        if (cmd.includes("share")) { copyLink(); return; }
+        if (cmd.includes("instagram") || cmd.includes("insta") || cmd.includes("follow")) { followInsta(); return; }
+
+        // NAVIGATION JUMPS
+        if (cmd.includes("go to burger") || cmd.includes("show me burgers")) { goToSlide(0); return; }
+        if (cmd.includes("go to chicken") || cmd.includes("show me chicken")) { goToSlide(1); return; }
+        if (cmd.includes("go to sides") || cmd.includes("show me sides")) { goToSlide(2); return; }
+        if (cmd.includes("go to value") || cmd.includes("show me value")) { goToSlide(3); return; }
+        if (cmd.includes("go to drinks") || cmd.includes("show me drinks")) { goToSlide(4); return; }
+        if (cmd.includes("go to ticket") || cmd.includes("show order")) { goToSlide(5); return; }
+
+        // SELECTION LOGIC (Scan Config)
+        // Matches any keyword in the "voice" array of CONFIG
+        CONFIG.slides.forEach(slide => {
+            if (slide.type === 'selector') {
+                Object.keys(slide.options).forEach(optKey => {
+                    const opt = slide.options[optKey];
+                    if (opt.voice) {
+                        opt.voice.forEach(keyword => {
+                            if (cmd.includes(keyword)) {
+                                selectOption(slide.key, optKey);
+                            }
+                        });
+                    }
+                });
+            }
+        });
     }
 
     function selectOption(category, value) {
         USER_CART[category] = value;
         showToast(`SELECTED: ${value}`);
-        // Optional: auto-advance
-        // goToSlide(currentIdx + 1); 
+        // Refresh display if we are on the ticket page
+        if(slideElements[currentIdx].id === 'final') updateResult();
     }
 
+    /* =========================================
+       TOUCH ENGINE
+       ========================================= */
     function attachEvents() {
         let startX = 0, startY = 0;
 
