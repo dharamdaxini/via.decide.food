@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Harvey's Decision Engine | SWIPE-OS v5.3 (959 Combo AI)</title>
+    <title>Harvey's Decision Engine | SWIPE-OS v6.0 (B2B Module)</title>
     <style>
         /* =========================================
            CORE SYSTEM (UNCHANGED)
@@ -171,7 +171,7 @@
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 40px;
-            min-height: 100px; /* Ensure space for items */
+            min-height: 100px;
         }
 
         .input-row {
@@ -323,6 +323,22 @@
         }
         #voice-feedback.visible { opacity: 1; }
 
+        /* B2B Typography */
+        .b2b-highlight {
+            font-size: 2.5rem;
+            line-height: 1.2;
+            color: #fff;
+            font-weight: 300;
+            margin: 20px 0;
+        }
+        .b2b-bold {
+            color: var(--brand-orange);
+            font-weight: 900;
+            letter-spacing: 2px;
+            display: block;
+            font-size: 3rem;
+        }
+
     </style>
 </head>
 <body>
@@ -343,7 +359,7 @@
     const CONFIG = {
       "slides": [
         {
-          "id": "burger", "type": "selector", "title": "01 / 13 · BURGERS", "key": "burger",
+          "id": "burger", "type": "selector", "title": "01 / 14 · BURGERS", "key": "burger",
           "options": {
             "ORIGINAL": { "items": ["Original Burger"], "tag": "NOSTALGIA", "voice": ["original", "classic", "standard"] },
             "ANGUS": { "items": ["Angus Burger"], "tag": "QUALITY", "voice": ["angus", "premium", "beef", "steak"] },
@@ -351,7 +367,7 @@
           }
         },
         {
-          "id": "chicken", "type": "selector", "title": "02 / 13 · CHICKEN", "key": "chicken",
+          "id": "chicken", "type": "selector", "title": "02 / 14 · CHICKEN", "key": "chicken",
           "options": {
             "CRISPY": { "items": ["Crispy Sandwich"], "tag": "TEXTURE", "voice": ["crispy", "fried chicken"] },
             "GRILLED": { "items": ["Grilled Sandwich"], "tag": "HEALTH", "voice": ["grilled", "healthy"] },
@@ -359,14 +375,14 @@
           }
         },
         {
-          "id": "sides", "type": "selector", "title": "03 / 13 · SIDES", "key": "side",
+          "id": "sides", "type": "selector", "title": "03 / 14 · SIDES", "key": "side",
           "options": {
             "POUTINE": { "items": ["Classic Poutine"], "tag": "COMFORT", "voice": ["poutine", "gravy"] },
             "SIDES": { "items": ["Frings"], "tag": "CLASSIC", "voice": ["sides", "fries", "rings", "frings", "pickles"] }
           }
         },
         {
-          "id": "value", "type": "selector", "title": "04 / 13 · VALUE", "key": "value",
+          "id": "value", "type": "selector", "title": "04 / 14 · VALUE", "key": "value",
           "options": {
             "JR_BURGERS": { "items": ["Jr. Burger"], "tag": "BUDGET", "voice": ["junior", "jr burger"] },
             "SNACKS": { "items": ["Nuggets"], "tag": "QUICK", "voice": ["nuggets", "bites", "chicken bits"] },
@@ -374,23 +390,25 @@
           }
         },
         {
-          "id": "drinks", "type": "selector", "title": "05 / 13 · DRINKS", "key": "drink",
+          "id": "drinks", "type": "selector", "title": "05 / 14 · DRINKS", "key": "drink",
           "options": {
             "SHAKES": { "items": ["Chocolate Shake"], "tag": "DESSERT", "voice": ["shake", "milkshake", "chocolate", "vanilla", "strawberry"] },
             "FROZEN": { "items": ["Slushie"], "tag": "ENERGY", "voice": ["frozen", "slushie", "red bull", "slush"] },
             "STANDARD": { "items": ["Pepsi"], "tag": "BASIC", "voice": ["drink", "soda", "pop", "coke", "pepsi", "coffee", "tea"] }
           }
         },
-        { "id": "final", "type": "final", "title": "06 / 13 · ORDER TICKET" },
+        { "id": "final", "type": "final", "title": "06 / 14 · ORDER TICKET" },
         // Logic Slides
-        { "id": "hunger", "type": "standard", "title": "07 / 13 · HUNGER", "visual": { "h1": "HOW HUNGRY?", "q": "Calibrating protein.", "txt": "High hunger favors Angus." }, "logic": { "txt": "Angus is 100% beef." }, "proof": { "ascii": "[ SATIETY ]" } },
-        { "id": "timing", "type": "selector", "title": "08 / 13 · TIMING", "key": "timing", "options": { "OFF-PEAK": { "items": ["After 2PM"], "tag": "SMART", "voice": ["off peak", "quiet", "late"] }, "PEAK": { "items": ["Lunch Rush"], "tag": "RISKY", "voice": ["peak", "rush", "busy"] } } },
-        { "id": "consistency", "type": "standard", "title": "09 / 13 · CONSISTENCY", "visual": { "h1": "EXECUTION RISK", "q": "Tolerate variance?", "txt": "Depends on staff." }, "logic": { "txt": "Human scooping has variance." }, "proof": { "ascii": "[ VARIANCE ]" } },
-        { "id": "patty-logic", "type": "standard", "title": "10 / 13 · PATTY LOGIC", "visual": { "h1": "TEXTURE", "q": "Mouthfeel?", "txt": "Original is softer." }, "logic": { "txt": "Angus holds toppings better." }, "proof": { "ascii": "[ DENSITY ]" } },
-        { "id": "method", "type": "standard", "title": "11 / 13 · THE RITUAL", "visual": { "h1": "GARNISH CONTROL", "q": "Why Harvey’s?", "txt": "Live assembly." }, "logic": { "txt": "Open counters force accountability." }, "proof": { "ascii": "[ ERRORS ]" } },
-        { "id": "value-stack", "type": "standard", "title": "12 / 13 · STACKING", "visual": { "h1": "MINIMIZE SPEND", "q": "Don't pay full price.", "txt": "Use Coupons." }, "logic": { "txt": "Coupon > CAA > Points." }, "proof": { "ascii": "[ SAVINGS ]" } },
+        { "id": "hunger", "type": "standard", "title": "07 / 14 · HUNGER", "visual": { "h1": "HOW HUNGRY?", "q": "Calibrating protein.", "txt": "High hunger favors Angus." }, "logic": { "txt": "Angus is 100% beef." }, "proof": { "ascii": "[ SATIETY ]" } },
+        { "id": "timing", "type": "selector", "title": "08 / 14 · TIMING", "key": "timing", "options": { "OFF-PEAK": { "items": ["After 2PM"], "tag": "SMART", "voice": ["off peak", "quiet", "late"] }, "PEAK": { "items": ["Lunch Rush"], "tag": "RISKY", "voice": ["peak", "rush", "busy"] } } },
+        { "id": "consistency", "type": "standard", "title": "09 / 14 · CONSISTENCY", "visual": { "h1": "EXECUTION RISK", "q": "Tolerate variance?", "txt": "Depends on staff." }, "logic": { "txt": "Human scooping has variance." }, "proof": { "ascii": "[ VARIANCE ]" } },
+        { "id": "patty-logic", "type": "standard", "title": "10 / 14 · PATTY LOGIC", "visual": { "h1": "TEXTURE", "q": "Mouthfeel?", "txt": "Original is softer." }, "logic": { "txt": "Angus holds toppings better." }, "proof": { "ascii": "[ DENSITY ]" } },
+        { "id": "method", "type": "standard", "title": "11 / 14 · THE RITUAL", "visual": { "h1": "GARNISH CONTROL", "q": "Why Harvey’s?", "txt": "Live assembly." }, "logic": { "txt": "Open counters force accountability." }, "proof": { "ascii": "[ ERRORS ]" } },
+        { "id": "value-stack", "type": "standard", "title": "12 / 14 · STACKING", "visual": { "h1": "MINIMIZE SPEND", "q": "Don't pay full price.", "txt": "Use Coupons." }, "logic": { "txt": "Coupon > CAA > Points." }, "proof": { "ascii": "[ SAVINGS ]" } },
         // End Card
-        { "id": "brand-end", "type": "brand", "title": "13 / 13 · NATIONAL CHAMPION" }
+        { "id": "brand-end", "type": "brand", "title": "13 / 14 · NATIONAL CHAMPION" },
+        // B2B Card
+        { "id": "b2b", "type": "contact", "title": "14 / 14 · BUSINESS INQUIRY" }
       ]
     };
 
@@ -407,7 +425,7 @@
     const TRIGGER_THRESHOLD = 0.9;
 
     function init() {
-        console.log("BOOTING SWIPE-OS v5.3...");
+        console.log("BOOTING SWIPE-OS v6.0...");
         
         CONFIG.slides.forEach((cfg, idx) => {
             const section = document.createElement('section');
@@ -517,6 +535,28 @@
                     </div>`;
             }
 
+            else if (cfg.type === 'contact') {
+                content = `
+                    <div class="slide-header"><span class="header-title">${cfg.title}</span></div>
+                    <div class="carousel-viewport">
+                        <div class="sub-slide layer-1">
+                            <div class="verdict-container" style="justify-content:center; text-align:center;">
+                                <h1>Contact DECIDER</h1>
+                                <div class="b2b-highlight">
+                                    Get <br>
+                                    <span class="b2b-bold">CUSTOM</span> <br>
+                                    Catalogue <br>
+                                    Menu <br>
+                                    for your business purpose
+                                </div>
+                                <div class="final-actions" style="margin-top:40px;">
+                                    <button class="btn btn-wa" onclick="contactDecider()">WHATSAPP US</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+
             section.innerHTML = content;
             container.appendChild(section);
         });
@@ -573,6 +613,10 @@
     function sendSupport() {
         const msg = "I needed assistance with my order flow. Thanks!. How can I Support";
         window.open(`https://wa.me/916351537770?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function contactDecider() {
+        window.open('https://wa.me/916351537770?text=I%27m%20interested', '_blank');
     }
 
     function copyLink() {
@@ -667,7 +711,7 @@
     }
 
     /* =========================================
-       NLP ENGINE (v5.3)
+       NLP ENGINE
        ========================================= */
     let isListening = false;
     let recognition;
