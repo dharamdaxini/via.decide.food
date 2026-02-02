@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Harvey's Decision Engine | SWIPE-OS v6.4 (Deep Links)</title>
+    <title>Harvey's Decision Engine | SWIPE-OS v6.5 (Smart Clipboard)</title>
     <style>
         /* =========================================
            CORE SYSTEM
@@ -99,6 +99,9 @@
             transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease;
         }
 
+        .sub-slide.layer-1 { z-index: 30; opacity: 1; pointer-events: auto; }
+        .sub-slide.layer-2 { z-index: 20; }
+        .sub-slide.layer-3 { z-index: 10; }
         .sub-slide.opt-active { z-index: 30; opacity: 1; pointer-events: auto; transform: translateX(0); }
         .sub-slide.opt-hidden { z-index: 0; opacity: 0; pointer-events: none; }
         .sub-slide.static { z-index: 30; opacity: 1; pointer-events: auto; }
@@ -178,6 +181,7 @@
             height: 0%; transition: height 0.05s linear, background 0.3s;
         }
 
+        /* Toast for copy feedback */
         .toast-msg {
             position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%);
             background: #222; color: #00e676; padding: 12px 24px;
@@ -198,8 +202,31 @@
 
 <script>
     /* =========================================
-       1. DEEP LINK RESOLVER (THE PATCH)
+       1. SMART CLIPBOARD & DEEP LINK RESOLVER
        ========================================= */
+    
+    // Helper to generate clean order text from USER_CART
+    function getOrderText() {
+        let items = [];
+        if (USER_CART.burger) items.push(USER_CART.burger + " Burger");
+        if (USER_CART.chicken) items.push(USER_CART.chicken);
+        if (USER_CART.side) items.push(USER_CART.side);
+        if (USER_CART.value) items.push(USER_CART.value);
+        if (USER_CART.drink) items.push(USER_CART.drink);
+        
+        return items.length > 0 ? items.join(", ") : "Punjabi Food";
+    }
+
+    // Helper to copy text to clipboard
+    function copyToClipboard(text) {
+        if (!navigator.clipboard) return;
+        navigator.clipboard.writeText(text).then(() => {
+            showToast("ORDER COPIED! PASTE IN APP");
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+        });
+    }
+
     const PLATFORM_LINKS = {
       zomato: {
         app: q => `zomato://search?q=${encodeURIComponent(q)}`,
@@ -215,34 +242,31 @@
       }
     };
 
-    function openPlatform(platform, query) {
-      // 1. Get the query from Cart or Default
-      const finalQuery = query || getBestSearchTerm();
-      const links = PLATFORM_LINKS[platform];
+    function openPlatform(platform) {
+      // 1. Get current cart text
+      const orderQuery = getOrderText();
       
+      // 2. Copy to Clipboard FIRST
+      copyToClipboard(orderQuery);
+
+      // 3. Prepare Deep Link
+      const links = PLATFORM_LINKS[platform];
       if (!links) return;
 
-      console.log(`[DEEP LINK] Attempting ${platform} with query: ${finalQuery}`);
-      showToast(`OPENING ${platform.toUpperCase()}...`);
+      console.log(`[DEEP LINK] Attempting ${platform} with query: ${orderQuery}`);
 
-      // 2. Attempt App Open
-      const start = Date.now();
-      window.location.href = links.app(finalQuery);
-
-      // 3. Fallback to Web if App fails (timeout)
+      // 4. Delay redirection slightly so Toast is seen
       setTimeout(() => {
-        if (Date.now() - start < 1500) {
-           window.location.href = links.web(finalQuery);
-        }
-      }, 1000);
-    }
+          const start = Date.now();
+          window.location.href = links.app(orderQuery);
 
-    function getBestSearchTerm() {
-        // Priority logic for search query
-        if (USER_CART.burger) return USER_CART.burger + " Burger";
-        if (USER_CART.chicken) return USER_CART.chicken;
-        if (USER_CART.side) return USER_CART.side;
-        return "North Indian Food"; // Fallback
+          // 5. Fallback to Web if App fails
+          setTimeout(() => {
+            if (Date.now() - start < 1500) {
+               window.location.href = links.web(orderQuery);
+            }
+          }, 800);
+      }, 800);
     }
 
     /* =========================================
@@ -316,7 +340,7 @@
     const MAX_DRAG = 300; 
 
     function init() {
-        console.log("BOOTING SWIPE-OS v6.4...");
+        console.log("BOOTING SWIPE-OS v6.5...");
         
         CONFIG.slides.forEach((cfg, idx) => {
             const section = document.createElement('section');
@@ -370,19 +394,20 @@
                     </div>`;
             }
 
-            // FINAL SLIDE WITH DEEP LINKS
+            // FINAL SLIDE WITH DEEP LINKS & LOGIC
             else if (cfg.type === 'final') {
                 let btns = '';
                 cfg.actions.forEach(act => {
                     let onclick = '';
                     let btnClass = 'btn';
 
+                    // Update onclick handlers to use new openPlatform
                     if (act.action === 'zomato') { onclick = `openPlatform('zomato')`; btnClass += ' btn-zomato'; }
                     if (act.action === 'swiggy') { onclick = `openPlatform('swiggy')`; btnClass += ' btn-swiggy'; }
                     if (act.action === 'blinkit') { onclick = `openPlatform('blinkit')`; btnClass += ' btn-blinkit'; }
                     
                     if (act.action === 'whatsapp') {
-                        onclick = `window.open('https://wa.me/916351537770?text=' + encodeURIComponent('I want to order: ' + getBestSearchTerm()), '_blank')`;
+                        onclick = `sendWhatsappTicket()`; // Use dedicated function
                         btnClass += ' btn-wa';
                     }
                     if (act.action === 'b2b') {
@@ -416,7 +441,7 @@
     }
 
     /* =========================================
-       TOUCH & NAV ENGINE
+       4. TOUCH & NAV ENGINE
        ========================================= */
     function showToast(msg) {
         const t = document.getElementById('toast');
@@ -425,11 +450,28 @@
         setTimeout(() => t.classList.remove('visible'), 2000);
     }
 
+    function sendWhatsappTicket() {
+        // Construct clean message
+        let items = "";
+        const keys = Object.keys(USER_CART);
+        
+        if (keys.length === 0) {
+            items = "No specific items selected.";
+        } else {
+            keys.forEach(k => {
+                items += `- ${k.toUpperCase()}: ${USER_CART[k]}\n`;
+            });
+        }
+
+        const msg = `MY HARVEY'S ORDER:\n\n${items}`;
+        window.open(`https://wa.me/916351537770?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
     function goToSlide(idx) {
         if (idx < 0 || idx >= slideElements.length) return;
         
         const curr = slideElements[currentIdx];
-        curr.classList.remove('active');
+        curr.classList.remove('active', 'deck-active');
         
         if (idx > currentIdx) { curr.classList.add('prev'); curr.classList.remove('next'); } 
         else { curr.classList.add('next'); curr.classList.remove('prev'); }
@@ -523,7 +565,7 @@
                     if(axis === 'y' && dy > 60) {
                         const val = slides[curr].dataset.val;
                         
-                        // --- BUILD CART LOGIC ---
+                        // Populate Cart
                         if (parentSlide.id === 'slide_01_item') USER_CART.burger = val;
                         if (parentSlide.id === 'slide_02_style') USER_CART.style = val;
                         
