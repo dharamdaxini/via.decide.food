@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Harvey's Decision Engine | SWIPE-OS v5.1 (Full Voice)</title>
+    <title>Harvey's Decision Engine | SWIPE-OS v5.2 (Dynamic Ticket)</title>
     <style>
         /* =========================================
            CORE SYSTEM
@@ -171,6 +171,7 @@
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 40px;
+            min-height: 60px;
         }
 
         .input-row {
@@ -208,6 +209,7 @@
             letter-spacing: 2px;
         }
 
+        /* Slide 13 Logo Placeholder */
         .brand-logo-placeholder {
             width: 80px;
             height: 80px;
@@ -256,7 +258,7 @@
             height: 0%; transition: height 0.05s linear, background 0.3s;
         }
 
-        /* Toast for feedback */
+        /* Toast for copy feedback */
         .toast-msg {
             position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
             background: #222; color: #00e676; padding: 12px 24px;
@@ -418,14 +420,7 @@
     /* =========================================
        STATE & BUILDER
        ========================================= */
-    let USER_CART = {
-        burger: 'ORIGINAL',
-        chicken: 'CRISPY',
-        side: 'FRINGS',
-        drink: 'SHAKE',
-        value: 'JR_BURGERS',
-        timing: 'OFF-PEAK'
-    };
+    let USER_CART = {}; // START EMPTY FOR ACCURACY
 
     const container = document.getElementById('master-container');
     let slideElements = [];
@@ -434,9 +429,8 @@
     const MAX_DRAG = 300; 
     const TRIGGER_THRESHOLD = 0.9;
 
-    // --- INIT ---
     function init() {
-        console.log("BOOTING SWIPE-OS v5.1...");
+        console.log("BOOTING SWIPE-OS v5.2...");
         
         CONFIG.slides.forEach((cfg, idx) => {
             const section = document.createElement('section');
@@ -511,8 +505,8 @@
                                 <div class="input-group" id="final-inputs"></div>
                                 <div class="choice-header">PRIMARY SELECTION</div>
                                 <div class="hero-section">
-                                    <div class="hero-burger" id="hero-burger-name">ANGUS</div>
-                                    <div class="hero-sub">FLAME-GRILLED</div>
+                                    <div class="hero-burger" id="hero-burger-name">NO BURGER</div>
+                                    <div class="hero-sub" style="display:none;">FLAME-GRILLED</div>
                                 </div>
                                 <div class="final-actions">
                                     <button class="btn btn-wa" onclick="sendWhatsappTicket()">SAVE TICKET</button>
@@ -560,14 +554,24 @@
     function updateResult() {
         const container = document.getElementById('final-inputs');
         const burgerName = document.getElementById('hero-burger-name');
+        const heroSub = document.querySelector('.hero-sub');
         
-        burgerName.innerText = USER_CART.burger;
+        if (USER_CART.burger) {
+            burgerName.innerText = USER_CART.burger;
+            heroSub.innerText = "FLAME-GRILLED";
+            heroSub.style.display = 'block';
+        } else {
+            burgerName.innerText = "NO BURGER";
+            heroSub.style.display = 'none';
+        }
 
         let html = '';
         const keys = ['chicken', 'side', 'drink', 'timing', 'value']; 
         
+        let hasItems = false;
         keys.forEach(k => {
             if(USER_CART[k]) {
+                hasItems = true;
                 html += `
                 <div class="input-row">
                     <span class="input-key">${k.toUpperCase()}</span>
@@ -575,20 +579,28 @@
                 </div>`;
             }
         });
+        
+        if (!hasItems && !USER_CART.burger) {
+            html = '<div style="text-align:center; color:#666; padding:20px;">No items selected yet.<br>Swipe or speak to build order.</div>';
+        }
+        
         container.innerHTML = html;
     }
 
+    // Save Ticket
     function sendWhatsappTicket() {
         let msg = "MY HARVEY'S ORDER:\n";
         Object.keys(USER_CART).forEach(k => msg += `- ${k.toUpperCase()}: ${USER_CART[k]}\n`);
         window.open(`https://wa.me/916351537770?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
+    // Support Action
     function sendSupport() {
         const msg = "I needed assistance with my order flow. Thanks!. How can I Support";
         window.open(`https://wa.me/916351537770?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
+    // Share Link Action
     function copyLink() {
         const url = "https://dharamdaxini.github.io/via.decide.food/";
         navigator.clipboard.writeText(url).then(() => {
@@ -596,6 +608,7 @@
         });
     }
 
+    // Follow Insta Action
     function followInsta() {
         window.open('https://www.instagram.com/harveys?igsh=MWY0M3VyemQ2NHFjZw==', '_blank');
     }
@@ -681,7 +694,7 @@
     }
 
     /* =========================================
-       LISTEN MODE ENGINE (v5.1)
+       LISTEN MODE & TOUCH ENGINE
        ========================================= */
     let isListening = false;
     let recognition;
@@ -744,7 +757,6 @@
         if (cmd.includes("go to ticket") || cmd.includes("show order")) { goToSlide(5); return; }
 
         // SELECTION LOGIC (Scan Config)
-        // Matches any keyword in the "voice" array of CONFIG
         CONFIG.slides.forEach(slide => {
             if (slide.type === 'selector') {
                 Object.keys(slide.options).forEach(optKey => {
@@ -764,13 +776,10 @@
     function selectOption(category, value) {
         USER_CART[category] = value;
         showToast(`SELECTED: ${value}`);
-        // Refresh display if we are on the ticket page
+        // Refresh display if on ticket
         if(slideElements[currentIdx].id === 'final') updateResult();
     }
 
-    /* =========================================
-       TOUCH ENGINE
-       ========================================= */
     function attachEvents() {
         let startX = 0, startY = 0;
 
