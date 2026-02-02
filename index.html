@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Harvey's Decision Engine | SWIPE-OS v5.2 (Dynamic Ticket)</title>
+    <title>Harvey's Decision Engine | SWIPE-OS v6.0 (Unified)</title>
     <style>
         /* =========================================
            CORE SYSTEM
@@ -23,6 +23,7 @@
             color: var(--text-main);
             font-family: var(--font-ui);
             overflow: hidden;
+            touch-action: none; /* HARD LOCK */
         }
 
         #master-container {
@@ -41,7 +42,7 @@
             display: flex;
             flex-direction: column;
             background: var(--brand-bg);
-            transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+            transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
             will-change: transform;
         }
 
@@ -54,14 +55,15 @@
             border-left: 3px solid var(--brand-orange);
             height: 70px;
             flex-shrink: 0;
-            z-index: 10;
+            z-index: 50;
             display: flex;
             align-items: center;
             transition: opacity 0.3s;
         }
         
-        .main-slide.deck-active .slide-header { opacity: 0.2; }
-        .main-slide.deck-active { background: #000; }
+        /* MODE STATES */
+        .main-slide.deck-active .slide-header { opacity: 0.3; }
+        .main-slide.deck-active { background: #050505; }
 
         .header-title {
             font-family: var(--font-tech);
@@ -73,13 +75,14 @@
         }
 
         /* =========================================
-           CONTENT DECK
+           CONTENT DECK (PHYSICS ENABLED)
            ========================================= */
         .carousel-viewport {
             position: relative;
             flex-grow: 1;
             width: 100%;
-            touch-action: none;
+            height: 100%;
+            perspective: 1000px;
         }
 
         .sub-slide {
@@ -89,26 +92,30 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-            opacity: 0;
-            pointer-events: none;
-            transform: translateY(0) scale(1);
-            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease;
+            background: var(--brand-bg);
+            /* Physics Base */
+            transition: transform 0.1s linear, opacity 0.1s linear; 
+            will-change: transform, opacity;
+            border-left: 1px dashed #333;
         }
 
-        .sub-slide.layer-1 { z-index: 30; opacity: 1; pointer-events: auto; }
-        .sub-slide.layer-2 { z-index: 20; }
-        .sub-slide.layer-3 { z-index: 10; }
-        .sub-slide.opt-active { z-index: 30; opacity: 1; pointer-events: auto; transform: translateX(0); }
-        .sub-slide.opt-hidden { z-index: 0; opacity: 0; pointer-events: none; }
+        /* LOGIC MODE STACKING (Alchemist) */
+        .sub-slide.layer-1 { z-index: 30; opacity: 1; transform: translateY(0); } /* Visual */
+        .sub-slide.layer-2 { z-index: 20; opacity: 0; transform: translateY(30px) scale(0.95); } /* Logic */
+        .sub-slide.layer-3 { z-index: 10; opacity: 0; transform: translateY(60px) scale(0.90); } /* Proof */
 
-        h1 { font-size: 1.8rem; margin: 0 0 15px 0; line-height: 1; letter-spacing: -1px; color: var(--brand-orange); }
-        .primary-question { font-size: 1.1rem; color: #fff; margin-bottom: 25px; line-height: 1.4; font-weight: 600; }
-        .content-text { font-size: 0.9rem; color: #aaa; line-height: 1.6; max-height: 40vh; overflow-y: auto; }
+        /* OPTIONS MODE STACKING (Horizontal) */
+        .sub-slide.opt-active { z-index: 30; opacity: 1; transform: translateX(0); transition: transform 0.3s ease; }
+        .sub-slide.opt-hidden { z-index: 0; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+
+        /* Typography */
+        h1 { font-size: 1.8rem; margin: 0 0 15px 0; line-height: 1; letter-spacing: -1px; color: var(--brand-orange); pointer-events: none; }
+        .primary-question { font-size: 1.1rem; color: #fff; margin-bottom: 25px; line-height: 1.4; font-weight: 600; pointer-events: none; }
+        .content-text { font-size: 0.9rem; color: #aaa; line-height: 1.6; pointer-events: none; }
 
         .item-list { list-style: none; padding: 0; margin-top: 10px; }
         .item-list li { padding: 6px 0; border-bottom: 1px solid #222; font-size: 0.85rem; color: #ccc; }
-        .item-list li:before { content: "• "; color: var(--brand-orange); }
-
+        
         .role-label {
             font-family: var(--font-tech);
             font-size: 0.6rem;
@@ -119,17 +126,6 @@
             width: fit-content;
             margin-bottom: 15px;
             font-weight: bold;
-        }
-
-        .nav-hint {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #333;
-            font-family: var(--font-tech);
-            font-size: 0.7rem;
-            color: #666;
-            display: flex;
-            justify-content: space-between;
         }
 
         .ascii-box {
@@ -146,471 +142,437 @@
         }
 
         /* =========================================
-           VERDICT & BRAND REDESIGN
+           UI: VERDICT & TICKET
            ========================================= */
-        .verdict-container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            justify-content: center;
-        }
-
-        .choice-header {
-            font-family: var(--font-tech);
-            color: #666;
-            font-size: 0.8rem;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-align: center;
-        }
-
-        .input-group {
-            border: 1px solid #333;
-            background: #111;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 40px;
-            min-height: 60px;
-        }
-
-        .input-row {
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px dashed #333;
-            padding: 10px 0;
-            font-family: var(--font-tech);
-            font-size: 0.8rem;
-        }
-        .input-row:last-child { border-bottom: none; }
-        
+        .verdict-container { display: flex; flex-direction: column; height: 100%; justify-content: center; }
+        .input-group { border: 1px solid #333; background: #111; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .input-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #333; padding: 10px 0; font-family: var(--font-tech); font-size: 0.8rem; }
         .input-key { color: #888; text-transform: uppercase; }
-        .input-val { color: var(--accent-go); font-weight: bold; text-align: right; }
-
-        .hero-section {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .hero-burger {
-            font-size: 3rem;
-            font-weight: 900;
-            line-height: 1;
-            text-transform: uppercase;
-            color: #fff;
-            margin-bottom: 5px;
-            letter-spacing: -2px;
-        }
+        .input-val { color: var(--accent-go); font-weight: bold; }
         
-        .hero-sub {
-            font-family: var(--font-tech);
-            color: var(--brand-orange);
-            font-size: 0.8rem;
-            letter-spacing: 2px;
-        }
-
-        /* Slide 13 Logo Placeholder */
-        .brand-logo-placeholder {
-            width: 80px;
-            height: 80px;
-            background: #222;
-            border-radius: 50%;
-            margin: 0 auto 20px auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid var(--brand-orange);
-            color: var(--brand-orange);
-            font-weight: 900;
-            font-size: 1.5rem;
-        }
-
-        .final-actions {
-            display: grid;
-            gap: 12px;
-            margin-top: auto;
-        }
-        .btn {
-            background: #222;
-            color: #fff;
-            border: 1px solid #333;
-            padding: 18px;
-            width: 100%;
-            border-radius: 8px;
-            font-weight: 600;
-            text-align: center;
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
-        .btn:active { transform: scale(0.98); }
-        
+        .final-actions { display: grid; gap: 10px; margin-top: auto; }
+        .btn { background: #222; color: #fff; border: 1px solid #333; padding: 16px; border-radius: 8px; font-weight: 600; text-align: center; }
         .btn-wa { background: #25D366; color: #000; border: none; }
-        .btn-support { background: transparent; border: 1px solid #444; color: #888; }
-        .btn-share { background: var(--brand-orange); color: #fff; border: none; }
-        .btn-insta { 
-            background: linear-gradient(45deg, #405de6, #5851db, #833ab4, #c13584, #e1306c, #fd1d1d);
-            color: white; border: none;
-        }
-
-        #depth-fill {
-            position: fixed; right: 0; top: 0; bottom: 0; width: 4px;
-            background: #333; z-index: 900;
-            height: 0%; transition: height 0.05s linear, background 0.3s;
-        }
-
-        /* Toast for copy feedback */
-        .toast-msg {
-            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
-            background: #222; color: #00e676; padding: 12px 24px;
-            border: 1px solid #00e676;
-            border-radius: 30px; font-size: 0.8rem; opacity: 0; pointer-events: none;
-            transition: opacity 0.3s; z-index: 1000; font-family: var(--font-tech);
-            white-space: nowrap;
-        }
-        .toast-msg.visible { opacity: 1; }
+        .btn-share { background: var(--brand-orange); border: none; }
 
         /* =========================================
-           LISTEN MODE UI
+           LISTEN & MODE UI
            ========================================= */
         #mic-toggle {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            width: 60px;
-            height: 60px;
-            background: #111;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid #444;
-            z-index: 2000;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            position: fixed; bottom: 30px; left: 30px; width: 60px; height: 60px;
+            background: #111; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            border: 1px solid #444; z-index: 2000; cursor: pointer; transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
-        #mic-toggle svg { width: 28px; height: 28px; fill: #666; transition: fill 0.3s; }
-        
-        #mic-toggle.listening {
-            border-color: var(--accent-go);
-            background: rgba(0, 230, 118, 0.15);
-            animation: pulse-mic 1.5s infinite;
-        }
+        #mic-toggle svg { width: 28px; height: 28px; fill: #666; }
+        #mic-toggle.listening { border-color: var(--accent-go); background: rgba(0, 230, 118, 0.1); animation: pulse 1.5s infinite; }
         #mic-toggle.listening svg { fill: var(--accent-go); }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0,230,118,0.4); } 70% { box-shadow: 0 0 0 15px rgba(0,230,118,0); } }
 
-        @keyframes pulse-mic {
-            0% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.4); }
-            70% { box-shadow: 0 0 0 15px rgba(0, 230, 118, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
+        #mode-indicator {
+            position: fixed; bottom: 30px; left: 0; width: 100%; text-align: center;
+            font-family: var(--font-tech); font-size: 0.7rem; color: #666; pointer-events: none;
+            text-transform: uppercase; letter-spacing: 1px; opacity: 0; transition: opacity 0.3s;
         }
+        #mode-indicator.visible { opacity: 1; }
 
-        #voice-feedback {
-            position: fixed;
-            bottom: 30px;
-            left: 90px;
-            font-family: var(--font-tech);
-            font-size: 0.8rem;
-            color: #fff;
-            background: rgba(0,0,0,0.7);
-            padding: 8px 12px;
-            border-radius: 4px;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-            z-index: 1000;
-            border-left: 2px solid var(--accent-go);
+        .toast-msg {
+            position: fixed; bottom: 110px; left: 50%; transform: translateX(-50%);
+            background: #222; color: #00e676; padding: 10px 20px; border: 1px solid #00e676;
+            border-radius: 20px; font-size: 0.8rem; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s; z-index: 2000; font-family: var(--font-tech);
         }
-        #voice-feedback.visible { opacity: 1; }
+        .toast-msg.visible { opacity: 1; }
 
     </style>
 </head>
 <body>
 
 <div id="master-container"></div>
-<div id="depth-fill"></div>
-<div id="toast" class="toast-msg">ACTION CONFIRMED</div>
+<div id="mode-indicator"></div>
+<div id="toast" class="toast-msg"></div>
 
 <div id="mic-toggle" onclick="toggleListenMode()">
     <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
 </div>
-<div id="voice-feedback">LISTENING...</div>
 
 <script>
     /* =========================================
-       CONFIG: HARVEY'S 2026 MENU
+       1. GLOBAL STATE & CONFIG
        ========================================= */
     const CONFIG = {
-      "version": "HARVEYS_MENU_2026_V1",
       "slides": [
+        // 1. BURGERS (OPTIONS)
         {
-          "id": "burger",
-          "type": "selector",
-          "title": "01 / 13 · FLAME-GRILLED BURGERS",
-          "key": "burger",
+          "id": "burger", "type": "selector", "title": "01 / 13 · BURGERS", "key": "burger",
           "options": {
-            "ORIGINAL": { "items": ["Original"], "tag": "NOSTALGIA", "voice": ["original", "classic"] },
-            "ANGUS": { "items": ["Angus"], "tag": "QUALITY", "voice": ["angus", "premium", "beef"] },
-            "VEGGIE": { "items": ["Veggie"], "tag": "PLANT", "voice": ["veggie", "plant", "vegetarian"] }
+            "ORIGINAL": { "items": ["Original Burger"], "tag": "NOSTALGIA", "voice": ["original", "classic"] },
+            "ANGUS": { "items": ["Angus Burger"], "tag": "QUALITY", "voice": ["angus", "premium"] },
+            "VEGGIE": { "items": ["Veggie Burger"], "tag": "PLANT", "voice": ["veggie"] }
           }
         },
+        // 2. CHICKEN (OPTIONS)
         {
-          "id": "chicken",
-          "type": "selector",
-          "title": "02 / 13 · CHICKEN & WRAPS",
-          "key": "chicken",
+          "id": "chicken", "type": "selector", "title": "02 / 13 · CHICKEN", "key": "chicken",
           "options": {
-            "CRISPY": { "items": ["Crispy"], "tag": "TEXTURE", "voice": ["crispy", "fried"] },
-            "GRILLED": { "items": ["Grilled"], "tag": "HEALTH", "voice": ["grilled", "healthy"] },
-            "BUFFALO": { "items": ["Buffalo"], "tag": "SPICY", "voice": ["buffalo", "spicy"] }
+            "CRISPY": { "items": ["Crispy Sandwich"], "tag": "TEXTURE", "voice": ["crispy"] },
+            "GRILLED": { "items": ["Grilled Sandwich"], "tag": "HEALTH", "voice": ["grilled"] },
+            "BUFFALO": { "items": ["Buffalo Sandwich"], "tag": "SPICY", "voice": ["buffalo"] }
           }
         },
+        // 3. SIDES (OPTIONS)
         {
-          "id": "sides",
-          "type": "selector",
-          "title": "03 / 13 · SIDES & POUTINES",
-          "key": "side",
+          "id": "sides", "type": "selector", "title": "03 / 13 · SIDES", "key": "side",
           "options": {
-            "POUTINE": { "items": ["Classic Poutine"], "tag": "COMFORT", "voice": ["poutine", "gravy"] },
-            "SIDES": { "items": ["Frings", "Fries"], "tag": "CLASSIC", "voice": ["sides", "fries", "rings", "frings", "pickles"] }
+            "POUTINE": { "items": ["Classic Poutine"], "tag": "COMFORT", "voice": ["poutine"] },
+            "SIDES": { "items": ["Frings", "Fries"], "tag": "CLASSIC", "voice": ["sides", "fries", "rings"] }
           }
         },
+        // 4. VALUE (OPTIONS)
         {
-          "id": "value",
-          "type": "selector",
-          "title": "04 / 13 · VALUE PICKS",
-          "key": "value",
+          "id": "value", "type": "selector", "title": "04 / 13 · VALUE", "key": "value",
           "options": {
-            "JR_BURGERS": { "items": ["Jr. Burger"], "tag": "BUDGET", "voice": ["junior", "jr", "budget"] },
-            "JR_CHICKEN": { "items": ["Jr. Crispy"], "tag": "SNACK", "voice": ["junior chicken", "chicken snack"] },
-            "SNACKS": { "items": ["Nuggets"], "tag": "QUICK", "voice": ["snacks", "nuggets"] },
-            "DESSERTS": { "items": ["Donuts"], "tag": "SWEET", "voice": ["dessert", "donut", "pie", "sweet"] }
+            "JR_BURGERS": { "items": ["Jr. Burger"], "tag": "BUDGET", "voice": ["junior"] },
+            "SNACKS": { "items": ["Nuggets"], "tag": "QUICK", "voice": ["nuggets"] },
+            "DESSERTS": { "items": ["Donuts"], "tag": "SWEET", "voice": ["donut"] }
           }
         },
+        // 5. DRINKS (OPTIONS)
         {
-          "id": "drinks",
-          "type": "selector",
-          "title": "05 / 13 · DRINKS & TREATS",
-          "key": "drink",
+          "id": "drinks", "type": "selector", "title": "05 / 13 · DRINKS", "key": "drink",
           "options": {
-            "SHAKES": { "items": ["Chocolate"], "tag": "DESSERT", "voice": ["shake", "milkshake"] },
-            "FROZEN": { "items": ["Slushie"], "tag": "ENERGY", "voice": ["frozen", "slushie", "red bull"] },
-            "STANDARD": { "items": ["Pepsi"], "tag": "BASIC", "voice": ["drink", "soda", "pop", "coffee"] }
+            "SHAKES": { "items": ["Chocolate Shake"], "tag": "DESSERT", "voice": ["shake"] },
+            "STANDARD": { "items": ["Pepsi"], "tag": "BASIC", "voice": ["pop", "soda"] }
           }
         },
+        // 6. TICKET
         { "id": "final", "type": "final", "title": "06 / 13 · ORDER TICKET" },
-        { "id": "hunger", "type": "standard", "title": "07 / 13 · HUNGER CALIBRATION", "visual": { "h1": "HOW HUNGRY?", "q": "Calibrating protein requirements.", "txt": "High hunger favors Angus." }, "logic": { "txt": "Angus is 100% beef." }, "proof": { "ascii": "[ SATIETY ]" } },
-        {
-          "id": "timing",
-          "type": "selector",
-          "title": "08 / 13 · TIMING STRATEGY",
-          "key": "timing",
-          "options": {
-            "OFF-PEAK": { "items": ["After 2:00 PM"], "tag": "SMART", "voice": ["off peak", "quiet", "later"] },
-            "PEAK": { "items": ["Lunch Rush"], "tag": "RISKY", "voice": ["peak", "rush", "lunch", "dinner"] }
-          }
-        },
-        { "id": "consistency", "type": "standard", "title": "09 / 13 · HUMAN FACTOR", "visual": { "h1": "EXECUTION RISK", "q": "Can you tolerate inconsistency?", "txt": "Depends on garnish operator." }, "logic": { "txt": "Human scooping has variance." }, "proof": { "ascii": "[ VARIANCE ]" } },
-        { "id": "patty-logic", "type": "standard", "title": "10 / 13 · PATTY ARCHITECTURE", "visual": { "h1": "TEXTURE PROFILE", "q": "Mouthfeel Difference.", "txt": "Original is softer." }, "logic": { "txt": "Angus holds toppings better." }, "proof": { "ascii": "[ DENSITY ]" } },
-        { "id": "method", "type": "standard", "title": "11 / 13 · THE RITUAL", "visual": { "h1": "GARNISH CONTROL", "q": "Why Harvey’s feels different", "txt": "Live assembly." }, "logic": { "txt": "Open counters force accountability." }, "proof": { "ascii": "[ ERRORS ]" } },
-        { "id": "value-stack", "type": "standard", "title": "12 / 13 · VALUE STACKING", "visual": { "h1": "MINIMIZE SPEND", "q": "Don't pay menu price.", "txt": "Stack coupons." }, "logic": { "txt": "Paper Coupon > App Offer." }, "proof": { "ascii": "[ SAVINGS ]" } },
-        { "id": "brand-end", "type": "brand", "title": "13 / 13 · THE NATIONAL CHAMPION" }
+        // 7-12. LOGIC SLIDES
+        { "id": "hunger", "type": "standard", "title": "07 / 13 · HUNGER", "visual": { "h1": "HOW HUNGRY?", "q": "Calibrating protein.", "txt": "High hunger favors Angus." }, "logic": { "txt": "Angus is 100% beef. Original is formed patty." }, "proof": { "ascii": "[ SATIETY ]\nOriginal: [==  ]\nAngus:    [====]" } },
+        { "id": "timing", "type": "selector", "title": "08 / 13 · TIMING", "key": "timing", "options": { "OFF-PEAK": { "items": ["After 2PM"], "tag": "SMART", "voice": ["off peak"] }, "PEAK": { "items": ["Lunch Rush"], "tag": "RISKY", "voice": ["peak"] } } },
+        { "id": "consistency", "type": "standard", "title": "09 / 13 · CONSISTENCY", "visual": { "h1": "EXECUTION RISK", "q": "Tolerate variance?", "txt": "Depends on staff." }, "logic": { "txt": "Human scooping has variance." }, "proof": { "ascii": "[ VARIANCE ]\nTarget: 15g\nActual: 10-25g" } },
+        { "id": "patty", "type": "standard", "title": "10 / 13 · PATTY LOGIC", "visual": { "h1": "TEXTURE", "q": "Mouthfeel?", "txt": "Original is softer." }, "logic": { "txt": "Angus holds toppings better." }, "proof": { "ascii": "[ DENSITY ]" } },
+        { "id": "method", "type": "standard", "title": "11 / 13 · THE RITUAL", "visual": { "h1": "GARNISH CONTROL", "q": "Why Harvey’s?", "txt": "Live assembly." }, "logic": { "txt": "Transparency forces quality." }, "proof": { "ascii": "[ VISIBILITY ]" } },
+        { "id": "valuestack", "type": "standard", "title": "12 / 13 · STACKING", "visual": { "h1": "MINIMIZE SPEND", "q": "Don't pay full price.", "txt": "Use Coupons." }, "logic": { "txt": "Coupon > CAA > Points." }, "proof": { "ascii": "[ SAVINGS ]" } },
+        // 13. BRAND
+        { "id": "brand", "type": "brand", "title": "13 / 13 · NATIONAL ICON" }
       ]
     };
 
-    /* =========================================
-       STATE & BUILDER
-       ========================================= */
-    let USER_CART = {}; // START EMPTY FOR ACCURACY
-
-    const container = document.getElementById('master-container');
+    let GESTURE_MODE = "MAIN"; // MAIN | OPTIONS | LOGIC
+    let USER_CART = {}; // Zero-state
+    
     let slideElements = [];
     let currentIdx = 0;
+    
+    // Physics State
     let dragRatio = 0;
-    const MAX_DRAG = 300; 
-    const TRIGGER_THRESHOLD = 0.9;
+    let depthLevel = 0;
+    const MAX_DRAG = 250;
+
+    /* =========================================
+       2. INITIALIZATION & BUILDER
+       ========================================= */
+    const container = document.getElementById('master-container');
 
     function init() {
-        console.log("BOOTING SWIPE-OS v5.2...");
+        console.log("SWIPE-OS v6.0 BOOT");
         
         CONFIG.slides.forEach((cfg, idx) => {
             const section = document.createElement('section');
             section.className = `main-slide ${idx === 0 ? 'active' : 'next'}`;
             section.id = cfg.id;
-            section.dataset.mode = cfg.type === 'selector' ? 'options' : 'standard';
+            // Determine Mode Type for slide
+            section.dataset.mode = (cfg.type === 'selector') ? 'options' : 
+                                   (cfg.type === 'standard') ? 'logic' : 'static';
 
-            let content = '';
+            let innerHTML = `<div class="slide-header"><span class="header-title">${cfg.title}</span></div>`;
+            innerHTML += `<div class="carousel-viewport" data-key="${cfg.key || ''}">`;
 
             if (cfg.type === 'selector') {
-                let optionsHTML = '';
                 const keys = Object.keys(cfg.options);
-                
-                keys.forEach((k, kIdx) => {
+                keys.forEach((k, i) => {
                     const opt = cfg.options[k];
-                    const itemsList = opt.items.map(i => `<li>${i}</li>`).join('');
-                    const prevText = kIdx > 0 ? `&larr; ${keys[kIdx-1]}` : '';
-                    const nextText = kIdx < keys.length - 1 ? `${keys[kIdx+1]} &rarr;` : '';
-
-                    optionsHTML += `
-                        <div class="sub-slide ${kIdx===0 ? 'opt-active' : 'opt-hidden'}" data-opt-idx="${kIdx}" data-val="${k}">
+                    innerHTML += `
+                        <div class="sub-slide ${i===0 ? 'opt-active' : 'opt-hidden'}" data-opt-idx="${i}" data-val="${k}">
                             <div class="role-label">${opt.tag}</div>
                             <h1>${k}</h1>
-                            <div class="primary-question">${opt.note || 'Select Option'}</div>
-                            <div class="content-text">
-                                <ul class="item-list">${itemsList}</ul>
-                            </div>
-                            <div class="nav-hint">
-                                <span style="flex:1; text-align:left;">${prevText}</span>
-                                <span style="flex:2; text-align:center; color:#fff; font-weight:bold;">&darr; PULL TO SELECT &darr;</span>
-                                <span style="flex:1; text-align:right;">${nextText}</span>
-                            </div>
-                        </div>
-                    `;
+                            <div class="primary-question">${opt.items[0]}</div>
+                            <div class="content-text"><ul class="item-list"><li>Swipe LEFT/RIGHT to compare</li><li>Pull DOWN to Select</li></ul></div>
+                        </div>`;
                 });
-
-                content = `
-                    <div class="slide-header"><span class="header-title">${cfg.title}</span></div>
-                    <div class="carousel-viewport" data-key="${cfg.key}" data-total="${keys.length}">
-                        ${optionsHTML}
+            } else if (cfg.type === 'standard') {
+                // Stacked Layers for Alchemist Physics
+                innerHTML += `
+                    <div class="sub-slide layer-1">
+                        <h1>${cfg.visual.h1}</h1>
+                        <div class="primary-question">${cfg.visual.q}</div>
+                        <div class="content-text">${cfg.visual.txt}</div>
+                        <small style="color:#666; margin-top:20px; font-size:0.7rem;">&darr; Pull Down to Inspect Logic</small>
+                    </div>
+                    <div class="sub-slide layer-2">
+                        <div class="role-label">LOGIC LAYER</div>
+                        <div class="content-text">${cfg.logic.txt}</div>
+                    </div>
+                    <div class="sub-slide layer-3">
+                        <div class="role-label">PROOF LAYER</div>
+                        <div class="ascii-box">${cfg.proof.ascii}</div>
+                    </div>
+                `;
+            } else if (cfg.type === 'final') {
+                innerHTML += `
+                    <div class="sub-slide layer-1">
+                        <div class="verdict-container">
+                            <div class="choice-header">YOUR ORDER</div>
+                            <div class="input-group" id="ticket-content"></div>
+                            <div class="final-actions">
+                                <button class="btn btn-wa" onclick="sendTicket()">SAVE TICKET</button>
+                                <button class="btn btn-support" onclick="sendSupport()">SUPPORT</button>
+                            </div>
+                        </div>
                     </div>`;
-            }
-
-            else if (cfg.type === 'standard') {
-                content = `
-                    <div class="slide-header"><span class="header-title">${cfg.title}</span></div>
-                    <div class="carousel-viewport">
-                        <div class="sub-slide layer-1">
-                            <h1>${cfg.visual.h1}</h1>
-                            <div class="primary-question">${cfg.visual.q}</div>
-                            <div class="content-text">${cfg.visual.txt}</div>
-                            <small style="color:#666; margin-top:30px; font-size:0.7rem;">&darr; Pull Down &darr;</small>
-                        </div>
-                        <div class="sub-slide layer-2" style="opacity:0;">
-                            <div class="role-label">LOGIC</div>
-                            <div class="content-text">${cfg.logic.txt}</div>
-                        </div>
-                        <div class="sub-slide layer-3" style="opacity:0;">
-                            <div class="role-label">PROOF</div>
-                            <div class="ascii-box">${cfg.proof.ascii}</div>
-                        </div>
-                    </div>`;
-            }
-
-            else if (cfg.type === 'final') {
-                content = `
-                    <div class="slide-header"><span class="header-title">${cfg.title}</span></div>
-                    <div class="carousel-viewport">
-                        <div class="sub-slide layer-1">
-                            <div class="verdict-container">
-                                <div class="choice-header">YOUR CHOICES</div>
-                                <div class="input-group" id="final-inputs"></div>
-                                <div class="choice-header">PRIMARY SELECTION</div>
-                                <div class="hero-section">
-                                    <div class="hero-burger" id="hero-burger-name">NO BURGER</div>
-                                    <div class="hero-sub" style="display:none;">FLAME-GRILLED</div>
-                                </div>
-                                <div class="final-actions">
-                                    <button class="btn btn-wa" onclick="sendWhatsappTicket()">SAVE TICKET</button>
-                                    <button class="btn btn-support" onclick="sendSupport()">SUPPORT</button>
-                                </div>
+            } else if (cfg.type === 'brand') {
+                innerHTML += `
+                    <div class="sub-slide layer-1">
+                        <div class="verdict-container" style="text-align:center;">
+                            <div class="brand-logo-placeholder" style="width:80px;height:80px;border-radius:50%;border:2px solid #ff671f;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;color:#ff671f;font-weight:900;">H</div>
+                            <h1>100% CANADIAN</h1>
+                            <div class="content-text">Founded 1959. No hidden kitchens.</div>
+                            <div class="final-actions" style="margin-top:40px;">
+                                <button class="btn btn-share" onclick="copyLink()">SHARE APP</button>
+                                <button class="btn btn-insta" onclick="followInsta()">INSTAGRAM</button>
+                                <button class="btn" onclick="location.reload()">START OVER</button>
                             </div>
                         </div>
                     </div>`;
             }
 
-            else if (cfg.type === 'brand') {
-                content = `
-                    <div class="slide-header"><span class="header-title">${cfg.title}</span></div>
-                    <div class="carousel-viewport">
-                        <div class="sub-slide layer-1">
-                            <div class="verdict-container" style="justify-content:center;">
-                                <div class="brand-logo-placeholder">H</div>
-                                <div class="choice-header" style="color:var(--brand-orange); margin-bottom:10px;">100% CANADIAN</div>
-                                <h1>THE BURGER BOSS</h1>
-                                <div class="primary-question" style="text-align:center;">"It's a Beautiful Thing"</div>
-                                <div class="content-text" style="text-align:center;">
-                                    Founded in 1959. Harvey's garnishes every burger to order. 
-                                </div>
-                                <div class="final-actions" style="margin-top:40px;">
-                                    <button class="btn btn-share" onclick="copyLink()">SHARE THIS APP</button>
-                                    <button class="btn" onclick="location.reload()">START OVER</button>
-                                    <button class="btn btn-insta" onclick="followInsta()">FOLLOW ON INSTA</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
-            }
-
-            section.innerHTML = content;
+            innerHTML += `</div>`; // End viewport
+            section.innerHTML = innerHTML;
             container.appendChild(section);
         });
 
         slideElements = Array.from(document.querySelectorAll('.main-slide'));
-        attachEvents();
+        updateTicket(); // Init ticket
+        attachEvents(); // Bind physics
     }
 
     /* =========================================
-       LOGIC ENGINE
+       3. NAVIGATION & PHYSICS CONTROLLER
        ========================================= */
-    function updateResult() {
-        const container = document.getElementById('final-inputs');
-        const burgerName = document.getElementById('hero-burger-name');
-        const heroSub = document.querySelector('.hero-sub');
+    function goToSlide(idx) {
+        if (idx < 0 || idx >= slideElements.length) return;
         
-        if (USER_CART.burger) {
-            burgerName.innerText = USER_CART.burger;
-            heroSub.innerText = "FLAME-GRILLED";
-            heroSub.style.display = 'block';
+        // Reset Current
+        const curr = slideElements[currentIdx];
+        curr.classList.remove('active', 'deck-active');
+        
+        // 2. FORCE MAIN MODE
+        GESTURE_MODE = "MAIN"; 
+        updateModeIndicator();
+        resetPhysics(curr);
+
+        // Move
+        if (idx > currentIdx) { curr.classList.add('prev'); curr.classList.remove('next'); }
+        else { curr.classList.add('next'); curr.classList.remove('prev'); }
+
+        currentIdx = idx;
+        const next = slideElements[currentIdx];
+        next.classList.remove('prev', 'next');
+        next.classList.add('active');
+
+        if(next.id === 'final') updateTicket();
+    }
+
+    function resetPhysics(slide) {
+        dragRatio = 0;
+        depthLevel = 0;
+        const deck = slide.querySelector('.carousel-viewport');
+        const layers = deck.querySelectorAll('.sub-slide');
+        
+        // Reset Logic Layers
+        if (slide.dataset.mode === 'logic') {
+            layers.forEach((l, i) => {
+                l.style.transform = i===0 ? 'translateY(0)' : `translateY(${i*30}px) scale(0.9)`;
+                l.style.opacity = i===0 ? 1 : 0;
+            });
+        }
+    }
+
+    /* =========================================
+       4. PHYSICS ENGINE (ALCHEMIST & SWIPE)
+       ========================================= */
+    function updatePhysicsVisuals(view, ratio) {
+        const layers = view.querySelectorAll('.sub-slide');
+        if (layers.length < 3) return; // Only for logic slides
+
+        const l1 = layers[0]; // Visual
+        const l2 = layers[1]; // Logic
+        const l3 = layers[2]; // Proof
+
+        // Alchemist Ratio Logic
+        // 0.0 - 0.3: Visual moves up slightly, fades
+        // 0.3 - 0.6: Logic enters
+        // 0.6 - 1.0: Proof enters
+
+        if (ratio > 0) {
+            l1.style.transform = `translateY(${ratio * -60}px) scale(${1 - ratio*0.1})`;
+            l1.style.opacity = 1 - (ratio * 0.5);
         } else {
-            burgerName.innerText = "NO BURGER";
-            heroSub.style.display = 'none';
+            l1.style.transform = 'translateY(0)'; l1.style.opacity = 1;
         }
 
-        let html = '';
-        const keys = ['chicken', 'side', 'drink', 'timing', 'value']; 
+        if (ratio > 0.2) {
+            let l2Op = Math.min(1, (ratio - 0.2) * 3);
+            l2.style.opacity = l2Op;
+            l2.style.transform = `translateY(${60 - (ratio * 60)}px) scale(1)`;
+        } else {
+            l2.style.opacity = 0;
+        }
+
+        if (ratio > 0.6) {
+            let l3Op = Math.min(1, (ratio - 0.6) * 4);
+            l3.style.opacity = l3Op;
+            l3.style.transform = `translateY(${80 - (ratio * 80)}px)`;
+        } else {
+            l3.style.opacity = 0;
+        }
+    }
+
+    function attachEvents() {
+        let startX = 0, startY = 0;
+
+        document.querySelectorAll('.carousel-viewport').forEach(view => {
+            const slide = view.closest('.main-slide');
+            const mode = slide.dataset.mode; // 'options' or 'logic' or 'static'
+            const slides = Array.from(view.querySelectorAll('.sub-slide'));
+            
+            // State for options
+            view._currOpt = 0;
+
+            view.addEventListener('touchstart', e => {
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+            }, {passive: true});
+
+            view.addEventListener('touchmove', e => {
+                const dx = e.touches[0].clientX - startX;
+                const dy = e.touches[0].clientY - startY;
+                const axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+
+                // --- LOGIC MODE (VERTICAL DRAG) ---
+                if (GESTURE_MODE === 'LOGIC' && axis === 'y' && dy > 0 && mode === 'logic') {
+                    e.preventDefault();
+                    dragRatio = Math.min(dy / MAX_DRAG, 1);
+                    updatePhysicsVisuals(view, dragRatio);
+                }
+
+                // --- OPTIONS MODE (HORIZONTAL SWIPE VISUAL) ---
+                if (GESTURE_MODE === 'OPTIONS' && axis === 'x' && mode === 'options') {
+                    // Simple visual feedback could go here
+                }
+
+            }, {passive: false});
+
+            view.addEventListener('touchend', e => {
+                const dx = e.changedTouches[0].clientX - startX;
+                const dy = e.changedTouches[0].clientY - startY;
+                const axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+
+                // 1. MAIN NAVIGATION (Only if in MAIN mode)
+                if (GESTURE_MODE === 'MAIN') {
+                    if (axis === 'y' && dy < -50) goToSlide(currentIdx + 1); // Swipe Up -> Next
+                    if (axis === 'y' && dy > 50 && mode !== 'static') {
+                        // Enter Depth Mode
+                        GESTURE_MODE = mode === 'options' ? 'OPTIONS' : 'LOGIC';
+                        slide.classList.add('deck-active');
+                        updateModeIndicator();
+                    }
+                    return;
+                }
+
+                // 2. EXIT DEPTH (Swipe Up)
+                if ((GESTURE_MODE === 'LOGIC' || GESTURE_MODE === 'OPTIONS') && axis === 'y' && dy < -50) {
+                    GESTURE_MODE = 'MAIN';
+                    slide.classList.remove('deck-active');
+                    updateModeIndicator();
+                    resetPhysics(slide);
+                    return;
+                }
+
+                // 3. LOGIC INTERACTION (Snap)
+                if (GESTURE_MODE === 'LOGIC') {
+                    if (dragRatio > 0.8) {
+                        // Snap to full depth
+                        updatePhysicsVisuals(view, 1.0);
+                    } else {
+                        // Snap back closed
+                        updatePhysicsVisuals(view, 0);
+                    }
+                    dragRatio = 0;
+                }
+
+                // 4. OPTIONS INTERACTION (Swipe L/R)
+                if (GESTURE_MODE === 'OPTIONS' && axis === 'x' && Math.abs(dx) > 50) {
+                    const total = slides.length;
+                    let curr = view._currOpt;
+
+                    if (dx < 0 && curr < total-1) curr++;
+                    if (dx > 0 && curr > 0) curr--;
+
+                    view._currOpt = curr;
+                    
+                    // Update Visibility
+                    slides.forEach((s, i) => {
+                        if (i === curr) {
+                            s.classList.remove('opt-hidden');
+                            s.classList.add('opt-active');
+                        } else {
+                            s.classList.remove('opt-active');
+                            s.classList.add('opt-hidden');
+                        }
+                    });
+                }
+
+                // 5. SELECT OPTION (Pull Down in Options)
+                if (GESTURE_MODE === 'OPTIONS' && axis === 'y' && dy > 50) {
+                    const selected = slides[view._currOpt];
+                    const key = view.dataset.key;
+                    const val = selected.dataset.val;
+                    
+                    USER_CART[key] = val;
+                    showToast(`SELECTED: ${val}`);
+                    
+                    // Auto-exit options after select? No, let user explore.
+                    // But maybe bounce effect?
+                }
+
+            });
+        });
+    }
+
+    /* =========================================
+       5. LOGIC & HELPERS
+       ========================================= */
+    function updateTicket() {
+        const t = document.getElementById('ticket-content');
+        if (!t) return;
         
-        let hasItems = false;
-        keys.forEach(k => {
-            if(USER_CART[k]) {
-                hasItems = true;
+        let html = '';
+        const keys = Object.keys(USER_CART);
+        
+        if (keys.length === 0) {
+            html = '<div style="text-align:center;color:#666;">No items selected.<br>Swipe or speak to build order.</div>';
+        } else {
+            keys.forEach(k => {
                 html += `
                 <div class="input-row">
                     <span class="input-key">${k.toUpperCase()}</span>
                     <span class="input-val">${USER_CART[k]}</span>
                 </div>`;
-            }
-        });
-        
-        if (!hasItems && !USER_CART.burger) {
-            html = '<div style="text-align:center; color:#666; padding:20px;">No items selected yet.<br>Swipe or speak to build order.</div>';
+            });
         }
-        
-        container.innerHTML = html;
-    }
-
-    // Save Ticket
-    function sendWhatsappTicket() {
-        let msg = "MY HARVEY'S ORDER:\n";
-        Object.keys(USER_CART).forEach(k => msg += `- ${k.toUpperCase()}: ${USER_CART[k]}\n`);
-        window.open(`https://wa.me/916351537770?text=${encodeURIComponent(msg)}`, '_blank');
-    }
-
-    // Support Action
-    function sendSupport() {
-        const msg = "I needed assistance with my order flow. Thanks!. How can I Support";
-        window.open(`https://wa.me/916351537770?text=${encodeURIComponent(msg)}`, '_blank');
-    }
-
-    // Share Link Action
-    function copyLink() {
-        const url = "https://dharamdaxini.github.io/via.decide.food/";
-        navigator.clipboard.writeText(url).then(() => {
-            showToast('LINK COPIED TO CLIPBOARD');
-        });
-    }
-
-    // Follow Insta Action
-    function followInsta() {
-        window.open('https://www.instagram.com/harveys?igsh=MWY0M3VyemQ2NHFjZw==', '_blank');
+        t.innerHTML = html;
     }
 
     function showToast(msg) {
@@ -620,272 +582,90 @@
         setTimeout(() => t.classList.remove('visible'), 2000);
     }
 
-    function goToSlide(idx) {
-        if (idx < 0 || idx >= slideElements.length) return;
-
-        const curr = slideElements[currentIdx];
-        curr.classList.remove('active', 'deck-active');
-        
-        if (idx > currentIdx) {
-            curr.classList.add('prev');
-            curr.classList.remove('next');
-        } else {
-            curr.classList.add('next');
-            curr.classList.remove('prev');
+    function updateModeIndicator() {
+        const m = document.getElementById('mode-indicator');
+        if (GESTURE_MODE === 'MAIN') m.classList.remove('visible');
+        else {
+            m.innerText = GESTURE_MODE === 'LOGIC' ? 'LOGIC MODE (Vertical)' : 'OPTIONS MODE (Horizontal)';
+            m.classList.add('visible');
         }
-        
-        const deck = curr.querySelector('.carousel-viewport')._deck;
-        if(deck && deck.slides) updateLayers(deck.slides, 0);
-
-        currentIdx = idx;
-        const next = slideElements[currentIdx];
-        
-        next.classList.remove('prev', 'next');
-        next.classList.add('active');
-
-        if(next.id === 'final') updateResult();
-
-        dragRatio = 0;
-        document.getElementById('depth-fill').style.height = '0%';
     }
 
-    function updateLayers(slides, ratio) {
-        if(!slides[0]) return; 
-        if(slides[0].closest('.main-slide').dataset.mode === 'options') return;
-
-        const vis = slides[0];
-        const log = slides[1];
-        const prf = slides[2];
-
-        if (ratio > 0.1) {
-            vis.style.transform = `translateY(${ratio * -80}px) scale(${1 - ratio*0.1})`;
-            vis.style.opacity = Math.max(0, 1 - ratio*3);
-        } else {
-            vis.style.transform = ''; vis.style.opacity = 1;
-        }
-
-        if (log) {
-            if (ratio > 0.25 && ratio < 0.65) {
-                log.style.opacity = Math.min(1, (ratio - 0.25) * 4);
-                log.style.transform = `translateY(${100 - (ratio-0.25)*300}px)`;
-            } else if (ratio > 0.65) {
-                log.style.opacity = Math.max(0, 1 - (ratio - 0.65) * 4);
-                log.style.transform = `translateY(-50px)`;
-            } else {
-                log.style.opacity = 0; log.style.transform = `translateY(100px)`;
-            }
-        }
-
-        if (prf) {
-            if (ratio > 0.55) {
-                prf.style.opacity = Math.min(1, (ratio - 0.55) * 4);
-                prf.style.transform = `translateY(${100 - (ratio-0.55)*300}px)`;
-            } else {
-                prf.style.opacity = 0; prf.style.transform = `translateY(100px)`;
-            }
-        }
-
-        const bar = document.getElementById('depth-fill');
-        bar.style.height = (ratio * 100) + '%';
-        if(ratio < 0.3) bar.style.background = '#333';
-        else if(ratio < 0.6) bar.style.background = '#ff671f';
-        else if(ratio < 0.9) bar.style.background = '#00e676';
-        else bar.style.background = '#fff';
+    // ACTIONS
+    function sendWhatsappTicket() {
+        let msg = "MY HARVEY'S ORDER:\n";
+        Object.keys(USER_CART).forEach(k => msg += `- ${k.toUpperCase()}: ${USER_CART[k]}\n`);
+        window.open(`https://wa.me/916351537770?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+    function sendSupport() {
+        window.open(`https://wa.me/916351537770?text=${encodeURIComponent("I needed assistance with my order flow. Thanks!. How can I Support")}`, '_blank');
+    }
+    function copyLink() {
+        navigator.clipboard.writeText("https://dharamdaxini.github.io/via.decide.food/");
+        showToast("LINK COPIED");
+    }
+    function followInsta() {
+        window.open("https://www.instagram.com/harveys?igsh=MWY0M3VyemQ2NHFjZw==", '_blank');
     }
 
     /* =========================================
-       LISTEN MODE & TOUCH ENGINE
+       6. LISTEN MODE (VOICE)
        ========================================= */
-    let isListening = false;
     let recognition;
+    let isListening = false;
 
     function toggleListenMode() {
-        if (!('webkitSpeechRecognition' in window)) {
-            alert("Voice not supported. Try Chrome/Safari.");
-            return;
-        }
-
-        const micBtn = document.getElementById('mic-toggle');
-        const feedback = document.getElementById('voice-feedback');
-
+        if (!('webkitSpeechRecognition' in window)) return alert("Browser not supported");
+        
+        const btn = document.getElementById('mic-toggle');
+        
         if (isListening) {
             recognition.stop();
             isListening = false;
-            micBtn.classList.remove('listening');
-            feedback.classList.remove('visible');
+            btn.classList.remove('listening');
         } else {
             recognition = new webkitSpeechRecognition();
-            recognition.continuous = true;
-            recognition.interimResults = false;
+            recognition.continuous = false;
             recognition.lang = 'en-US';
-
-            recognition.onstart = () => {
-                isListening = true;
-                micBtn.classList.add('listening');
-                feedback.classList.add('visible');
-                feedback.innerText = "LISTENING...";
+            
+            recognition.onstart = () => { isListening = true; btn.classList.add('listening'); };
+            recognition.onend = () => { isListening = false; btn.classList.remove('listening'); };
+            
+            recognition.onresult = (e) => {
+                const txt = e.results[0][0].transcript.toLowerCase();
+                processVoice(txt);
             };
-
-            recognition.onresult = (event) => {
-                const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
-                feedback.innerText = `HEARD: "${transcript}"`;
-                processVoiceCommand(transcript);
-            };
-
             recognition.start();
         }
     }
 
-    function processVoiceCommand(cmd) {
-        // GLOBAL NAVIGATION
-        if (cmd.includes("next")) { goToSlide(currentIdx + 1); return; }
-        if (cmd.includes("back") || cmd.includes("previous")) { goToSlide(currentIdx - 1); return; }
-        if (cmd.includes("start over") || cmd.includes("reset")) { location.reload(); return; }
-
-        // ACTIONS
-        if (cmd.includes("save") || cmd.includes("ticket")) { sendWhatsappTicket(); return; }
-        if (cmd.includes("support") || cmd.includes("help")) { sendSupport(); return; }
-        if (cmd.includes("share")) { copyLink(); return; }
-        if (cmd.includes("instagram") || cmd.includes("insta") || cmd.includes("follow")) { followInsta(); return; }
-
-        // NAVIGATION JUMPS
-        if (cmd.includes("go to burger") || cmd.includes("show me burgers")) { goToSlide(0); return; }
-        if (cmd.includes("go to chicken") || cmd.includes("show me chicken")) { goToSlide(1); return; }
-        if (cmd.includes("go to sides") || cmd.includes("show me sides")) { goToSlide(2); return; }
-        if (cmd.includes("go to value") || cmd.includes("show me value")) { goToSlide(3); return; }
-        if (cmd.includes("go to drinks") || cmd.includes("show me drinks")) { goToSlide(4); return; }
-        if (cmd.includes("go to ticket") || cmd.includes("show order")) { goToSlide(5); return; }
-
-        // SELECTION LOGIC (Scan Config)
-        CONFIG.slides.forEach(slide => {
-            if (slide.type === 'selector') {
-                Object.keys(slide.options).forEach(optKey => {
-                    const opt = slide.options[optKey];
-                    if (opt.voice) {
-                        opt.voice.forEach(keyword => {
-                            if (cmd.includes(keyword)) {
-                                selectOption(slide.key, optKey);
-                            }
-                        });
+    function processVoice(cmd) {
+        showToast(`Heard: "${cmd}"`);
+        
+        // Navigation
+        if (cmd.includes("next")) return goToSlide(currentIdx + 1);
+        if (cmd.includes("back")) return goToSlide(currentIdx - 1);
+        
+        // Actions
+        if (cmd.includes("ticket") || cmd.includes("save")) return sendWhatsappTicket();
+        
+        // Selection Matching
+        // Very basic fuzzy match against config
+        CONFIG.slides.forEach(s => {
+            if (s.type === 'selector') {
+                Object.keys(s.options).forEach(optKey => {
+                    const opt = s.options[optKey];
+                    if (opt.voice && opt.voice.some(v => cmd.includes(v))) {
+                        USER_CART[s.key] = optKey;
+                        showToast(`Added ${optKey}`);
+                        if(slideElements[currentIdx].id === 'final') updateTicket();
                     }
                 });
             }
         });
     }
 
-    function selectOption(category, value) {
-        USER_CART[category] = value;
-        showToast(`SELECTED: ${value}`);
-        // Refresh display if on ticket
-        if(slideElements[currentIdx].id === 'final') updateResult();
-    }
-
-    function attachEvents() {
-        let startX = 0, startY = 0;
-
-        document.querySelectorAll('.carousel-viewport').forEach(view => {
-            const slides = Array.from(view.querySelectorAll('.sub-slide'));
-            view._deck = { slides, currOpt: 0 };
-            
-            let isDragging = false;
-            let axis = null;
-
-            view.addEventListener('touchstart', e => {
-                startX = e.touches[0].clientX;
-                startY = e.touches[0].clientY;
-                isDragging = true;
-                axis = null;
-            }, {passive: true});
-
-            view.addEventListener('touchmove', e => {
-                if(!isDragging) return;
-                const dx = e.touches[0].clientX - startX;
-                const dy = e.touches[0].clientY - startY;
-
-                if(!axis) axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
-
-                const parentSlide = view.closest('.main-slide');
-                const isOptions = parentSlide.dataset.mode === 'options';
-
-                if(axis === 'y' && dy < 0) return; 
-
-                if(isOptions) {
-                    if(axis === 'x') slides.forEach(s => s.style.transform = `translateX(${dx}px)`);
-                    if(axis === 'y' && dy > 0) slides.forEach(s => s.style.transform = `translateY(${dy * 0.3}px)`);
-                    return;
-                }
-
-                if(axis === 'y' && dy > 0) {
-                    e.preventDefault();
-                    dragRatio = Math.min(dy / MAX_DRAG, 1);
-                    updateLayers(view._deck.slides, dragRatio);
-                    parentSlide.classList.add('deck-active');
-                }
-            }, {passive: false});
-
-            view.addEventListener('touchend', e => {
-                if(!isDragging) return;
-                isDragging = false;
-                
-                const dx = e.changedTouches[0].clientX - startX;
-                const dy = e.changedTouches[0].clientY - startY;
-                const parentSlide = view.closest('.main-slide');
-                const isOptions = parentSlide.dataset.mode === 'options';
-
-                if (axis === 'y' && dy < -60) {
-                    if (currentIdx > 0) {
-                        goToSlide(currentIdx - 1);
-                        return;
-                    }
-                }
-
-                if(isOptions) {
-                    const key = view.dataset.key;
-                    const total = parseInt(view.dataset.total);
-                    let curr = view._deck.currOpt;
-
-                    if(axis === 'x' && Math.abs(dx) > 50) {
-                        if(dx < 0 && curr < total - 1) curr++; 
-                        else if(dx > 0 && curr > 0) curr--;   
-                        
-                        view._deck.currOpt = curr;
-                        
-                        slides.forEach((s, i) => {
-                            if(i === curr) {
-                                s.classList.remove('opt-hidden');
-                                s.classList.add('opt-active');
-                                USER_CART[key] = s.dataset.val;
-                            } else {
-                                s.classList.remove('opt-active');
-                                s.classList.add('opt-hidden');
-                            }
-                        });
-                    }
-                    
-                    slides.forEach(s => s.style.transform = '');
-
-                    if(axis === 'y' && dy > 60) {
-                        if(!USER_CART[key]) USER_CART[key] = slides[view._deck.currOpt].dataset.val;
-                        goToSlide(currentIdx + 1);
-                    }
-                    return;
-                }
-
-                if(axis === 'y' && dy > 0) {
-                    if(dragRatio > TRIGGER_THRESHOLD) {
-                        goToSlide(currentIdx + 1);
-                    } else {
-                        parentSlide.classList.remove('deck-active');
-                        updateLayers(view._deck.slides, 0);
-                        document.getElementById('depth-fill').style.height = '0%';
-                    }
-                    dragRatio = 0;
-                }
-            });
-        });
-    }
-
-    init(); // BOOT
+    init();
 
 </script>
 </body>
