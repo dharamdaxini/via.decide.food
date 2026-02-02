@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Harvey's Decision Engine | SWIPE-OS v6.2 (LLM Data)</title>
+    <title>Harvey's Decision Engine | SWIPE-OS v6.3 (Punjabi Flow)</title>
     <style>
         /* =========================================
-           CORE SYSTEM (UNCHANGED)
+           CORE SYSTEM
            ========================================= */
         :root {
             --brand-orange: #ff671f;
@@ -95,19 +95,13 @@
             transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease;
         }
 
-        .sub-slide.layer-1 { z-index: 30; opacity: 1; pointer-events: auto; }
-        .sub-slide.layer-2 { z-index: 20; }
-        .sub-slide.layer-3 { z-index: 10; }
         .sub-slide.opt-active { z-index: 30; opacity: 1; pointer-events: auto; transform: translateX(0); }
         .sub-slide.opt-hidden { z-index: 0; opacity: 0; pointer-events: none; }
+        .sub-slide.static { z-index: 30; opacity: 1; pointer-events: auto; }
 
         h1 { font-size: 1.8rem; margin: 0 0 15px 0; line-height: 1; letter-spacing: -1px; color: var(--brand-orange); }
         .primary-question { font-size: 1.1rem; color: #fff; margin-bottom: 25px; line-height: 1.4; font-weight: 600; }
-        .content-text { font-size: 0.9rem; color: #aaa; line-height: 1.6; max-height: 40vh; overflow-y: auto; }
-
-        .item-list { list-style: none; padding: 0; margin-top: 10px; }
-        .item-list li { padding: 6px 0; border-bottom: 1px solid #222; font-size: 0.85rem; color: #ccc; }
-        .item-list li:before { content: "• "; color: var(--brand-orange); }
+        .content-text { font-size: 0.9rem; color: #aaa; line-height: 1.6; }
 
         .role-label {
             font-family: var(--font-tech);
@@ -132,105 +126,13 @@
             justify-content: space-between;
         }
 
-        .ascii-box {
-            background: #080808;
-            border: 1px solid #333;
-            color: var(--accent-go);
-            font-family: var(--font-tech);
-            font-size: 0.75rem;
-            padding: 15px;
-            border-radius: 6px;
-            white-space: pre;
-            line-height: 1.2;
-            margin-top: 20px;
-        }
-
         /* =========================================
-           VERDICT REDESIGN
+           ACTIONS & FINAL
            ========================================= */
-        .verdict-container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            justify-content: center;
-        }
-
-        .choice-header {
-            font-family: var(--font-tech);
-            color: #666;
-            font-size: 0.8rem;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-align: center;
-        }
-
-        .input-group {
-            border: 1px solid #333;
-            background: #111;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 40px;
-            min-height: 100px;
-        }
-
-        .input-row {
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px dashed #333;
-            padding: 10px 0;
-            font-family: var(--font-tech);
-            font-size: 0.8rem;
-            animation: fadeInRow 0.3s ease;
-        }
-        @keyframes fadeInRow { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
-        
-        .input-row:last-child { border-bottom: none; }
-        
-        .input-key { color: #888; text-transform: uppercase; }
-        .input-val { color: var(--accent-go); font-weight: bold; text-align: right; }
-
-        .hero-section {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .hero-burger {
-            font-size: 3rem;
-            font-weight: 900;
-            line-height: 1;
-            text-transform: uppercase;
-            color: #fff;
-            margin-bottom: 5px;
-            letter-spacing: -2px;
-        }
-        
-        .hero-sub {
-            font-family: var(--font-tech);
-            color: var(--brand-orange);
-            font-size: 0.8rem;
-            letter-spacing: 2px;
-        }
-
-        .brand-logo-placeholder {
-            width: 80px;
-            height: 80px;
-            background: #222;
-            border-radius: 50%;
-            margin: 0 auto 20px auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid var(--brand-orange);
-            color: var(--brand-orange);
-            font-weight: 900;
-            font-size: 1.5rem;
-        }
-
         .final-actions {
             display: grid;
             gap: 12px;
-            margin-top: auto;
+            margin-top: 40px;
         }
         .btn {
             background: #222;
@@ -246,12 +148,16 @@
         }
         .btn:active { transform: scale(0.98); }
         .btn-wa { background: #25D366; color: #000; border: none; }
-        .btn-support { background: transparent; border: 1px solid #444; color: #888; }
-        .btn-share { background: var(--brand-orange); color: #fff; border: none; }
-        .btn-insta { 
-            background: linear-gradient(45deg, #405de6, #5851db, #833ab4, #c13584, #e1306c, #fd1d1d);
-            color: white; border: none;
+        
+        .status-box {
+            background: #111;
+            border: 1px solid #333;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 20px;
         }
+        .status-val { color: var(--accent-go); font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 5px; }
 
         #depth-fill {
             position: fixed; right: 0; top: 0; bottom: 0; width: 4px;
@@ -259,7 +165,7 @@
             height: 0%; transition: height 0.05s linear, background 0.3s;
         }
 
-        /* Toast for copy feedback */
+        /* Toast for feedback */
         .toast-msg {
             position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
             background: #222; color: #00e676; padding: 12px 24px;
@@ -270,75 +176,6 @@
         }
         .toast-msg.visible { opacity: 1; }
 
-        /* =========================================
-           LISTEN MODE UI
-           ========================================= */
-        #mic-toggle {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            width: 60px;
-            height: 60px;
-            background: #111;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid #444;
-            z-index: 2000;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        }
-        #mic-toggle svg { width: 28px; height: 28px; fill: #666; transition: fill 0.3s; }
-        
-        #mic-toggle.listening {
-            border-color: var(--accent-go);
-            background: rgba(0, 230, 118, 0.15);
-            animation: pulse-mic 1.5s infinite;
-        }
-        #mic-toggle.listening svg { fill: var(--accent-go); }
-
-        @keyframes pulse-mic {
-            0% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.4); }
-            70% { box-shadow: 0 0 0 15px rgba(0, 230, 118, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
-        }
-
-        #voice-feedback {
-            position: fixed;
-            bottom: 30px;
-            left: 90px;
-            font-family: var(--font-tech);
-            font-size: 0.8rem;
-            color: #fff;
-            background: rgba(0,0,0,0.7);
-            padding: 8px 12px;
-            border-radius: 4px;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-            z-index: 2000;
-            border-left: 2px solid var(--accent-go);
-        }
-        #voice-feedback.visible { opacity: 1; }
-
-        /* B2B Typography */
-        .b2b-highlight {
-            font-size: 2.5rem;
-            line-height: 1.2;
-            color: #fff;
-            font-weight: 300;
-            margin: 20px 0;
-        }
-        .b2b-bold {
-            color: var(--brand-orange);
-            font-weight: 900;
-            letter-spacing: 2px;
-            display: block;
-            font-size: 3rem;
-        }
-
     </style>
 </head>
 <body>
@@ -347,235 +184,96 @@
 <div id="depth-fill"></div>
 <div id="toast" class="toast-msg">ACTION CONFIRMED</div>
 
-<div id="mic-toggle" onclick="toggleListenMode()">
-    <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
-</div>
-<div id="voice-feedback">LISTENING...</div>
-
 <script>
     /* =========================================
-       RAW LLM TRAINING DATA (INJECTED)
+       CONFIG: PUNJABI FOOD FLOW
        ========================================= */
-    const LLM_TRAINING_DATA = {
-      "app": {
-        "id": "FOOD-ALCHEMIST",
-        "version": "1.0.0",
-        "market": "INDIA",
-        "currency": "INR",
-        "timestamp_mode": "live",
-        "intent": "reduce_cognitive_load"
-      },
-      "user": {
-        "state": "anonymous",
-        "credits": {
-          "free": 10,
-          "bonus": 5,
-          "used": 0,
-          "locked_visibility_until_login": 2
-        },
-        "login": {
-          "required_after_credits": 2,
-          "methods": ["whatsapp", "otp"]
-        },
-        "preferences": {
-          "diet": null,
-          "spice": null,
-          "budget": null,
-          "repeat_tolerance": null
-        }
-      },
-      "menu": {
-        "region": "Punjabi",
-        "categories": [
-          {
-            "id": "main",
-            "name": "Main Items",
-            "items": [
-              { "id": "butter_chicken", "type": "non_veg", "price": 260 },
-              { "id": "paneer_butter_masala", "type": "veg", "price": 220 },
-              { "id": "chole_bhature", "type": "veg", "price": 180 }
-            ]
-          },
-          {
-            "id": "sides",
-            "name": "Sides",
-            "items": [
-              { "id": "butter_naan", "price": 40 },
-              { "id": "jeera_rice", "price": 120 }
-            ]
-          }
-        ]
+    const CONFIG = {
+      "ui_pack": {
+        "region": "PUNJABI",
+        "language": "EN_SIMPLE",
+        "tone": "decisive_calm",
+        "font_bias": "large_titles"
       },
       "slides": [
         {
-          "id": "item_selection",
+          "id": "slide_01_item",
           "type": "selector",
-          "question": "What do you feel like eating right now?",
-          "mode": "horizontal_swipe",
-          "writes_to": "cart.main"
+          "title": "WHAT ARE YOU CRAVING?",
+          "hint": "Swipe left / right",
+          "options": [
+            { "id": "butter_chicken", "label": "Butter Chicken", "sub": "Creamy • Rich • Punjabi Classic", "tags": ["non_veg", "comfort"] },
+            { "id": "paneer_butter_masala", "label": "Paneer Butter Masala", "sub": "Creamy • Veg • Safe Choice", "tags": ["veg", "comfort"] },
+            { "id": "chole_bhature", "label": "Chole Bhature", "sub": "Heavy • Spicy • Street Style", "tags": ["veg", "filling"] }
+          ],
+          "commit_action": "add_to_cart.main"
         },
         {
-          "id": "preference_1",
+          "id": "slide_02_style",
           "type": "decision",
-          "question": "Is this comfort food or protein priority?",
-          "affects": ["routing", "restaurant_match"]
+          "title": "WHAT KIND OF MEAL IS THIS?",
+          "hint": "Swipe left / right",
+          "options": [
+            { "id": "comfort", "label": "Comfort Food", "sub": "Creamy • Familiar • No experiments" },
+            { "id": "protein", "label": "Protein Focus", "sub": "Filling • Heavy • Long-lasting" }
+          ],
+          "affects": ["restaurant_match", "menu_filter"]
         },
         {
-          "id": "preference_2",
+          "id": "slide_03_people",
           "type": "decision",
-          "question": "Eating alone or with others?",
-          "affects": ["portion", "platform"]
+          "title": "WHO ARE YOU EATING WITH?",
+          "hint": "Swipe left / right",
+          "options": [
+            { "id": "solo", "label": "Just Me", "sub": "Fast • Minimal • Direct" },
+            { "id": "group", "label": "Family / Friends", "sub": "More items • Sharing" }
+          ],
+          "affects": ["portion_size", "cart_expansion"]
         },
         {
-          "id": "preference_3",
+          "id": "slide_04_wait",
           "type": "decision",
-          "question": "How much waiting is acceptable?",
+          "title": "HOW MUCH WAIT IS OK?",
+          "hint": "Swipe left / right",
+          "options": [
+            { "id": "quick", "label": "ASAP", "sub": "Under 30 minutes" },
+            { "id": "relaxed", "label": "I Can Wait", "sub": "Quality > Speed" }
+          ],
           "affects": ["online_vs_direct"]
         },
         {
-          "id": "llm_summary",
-          "type": "llm",
-          "input": ["cart", "preferences", "time", "availability"],
-          "output": ["recommendation_a", "recommendation_b"]
+          "id": "slide_05_llm",
+          "type": "llm_summary",
+          "title": "BEST WAY TO ORDER",
+          "cards": [
+            { "id": "recommendation_a", "label": "BEST ONLINE OPTION", "sub": "Based on availability & speed", "placeholder": true },
+            { "id": "recommendation_b", "label": "BEST LOCAL OPTION", "sub": "Direct from restaurant", "placeholder": true }
+          ]
+        },
+        {
+          "id": "slide_06_availability",
+          "type": "status",
+          "title": "LIVE OPTIONS RIGHT NOW",
+          "display": "4 of 4 services live",
+          "services": ["zomato", "swiggy", "blinkit", "local"]
+        },
+        {
+          "id": "slide_07_final",
+          "type": "final",
+          "title": "WHAT DO YOU WANT TO DO?",
+          "actions": [
+            { "id": "order_online", "label": "Order via App", "sub": "Zomato / Swiggy / Blinkit", "action": "online" },
+            { "id": "order_direct", "label": "Order from Restaurant", "sub": "WhatsApp / Call", "action": "whatsapp" },
+            { "id": "custom_build", "label": "Build This For My Business", "sub": "Restaurants • Cafes • Brands", "action": "b2b" }
+          ]
         }
-      ],
-      "routing": {
-        "options": [
-          {
-            "id": "online",
-            "providers": ["zomato", "swiggy", "blinkit"],
-            "condition": "availability >= 1"
-          },
-          {
-            "id": "direct",
-            "method": "whatsapp",
-            "restaurant_number": true,
-            "condition": "restaurant_accepts_direct == true"
-          }
-        ],
-        "availability_logic": {
-          "count_live": true,
-          "display": "X_of_4_live"
-        }
-      },
-      "credits": {
-        "consume_on": "redirect_attempt",
-        "consume_even_if_failed": true,
-        "per_action": 1
-      },
-      "monetisation": {
-        "user_plans": [
-          {
-            "id": "trial",
-            "price": 0,
-            "credits": 15
-          },
-          {
-            "id": "quarterly",
-            "price": 1,
-            "duration_days": 90,
-            "credits": "unlimited"
-          }
-        ],
-        "restaurant_fees": {
-          "model": "support_fee",
-          "percentage": 3,
-          "alternative": "flat_monthly"
-        }
-      },
-      "final_slide": {
-        "cta": [
-          {
-            "id": "order_online",
-            "label": "Order via App",
-            "action": "redirect_online"
-          },
-          {
-            "id": "order_direct",
-            "label": "Order from Restaurant",
-            "action": "redirect_whatsapp"
-          },
-          {
-            "id": "customize_app",
-            "label": "Build this for my business",
-            "action": "contact_owner"
-          }
-        ]
-      }
-    };
-
-    /* =========================================
-       0. SYSTEM STATE (PATCH 1 - CRASH FIXES)
-       ========================================= */
-    let SES_BEACON_SENT = false; 
-    let SENSORS_ENABLED = false;
-    let CURRENT_SES_ID = 'HARV-' + Math.floor(Math.random() * 10000);
-
-    /* =========================================
-       CONFIG: HARVEY'S 2026 MENU
-       ========================================= */
-    const CONFIG = {
-      "version": "HARVEYS_MENU_2026_V1",
-      "slides": [
-        {
-          "id": "burger", "type": "selector", "title": "01 / 14 · BURGERS", "key": "burger",
-          "options": {
-            "ORIGINAL": { "items": ["Original Burger"], "tag": "NOSTALGIA", "voice": ["original", "classic", "standard"] },
-            "ANGUS": { "items": ["Angus Burger"], "tag": "QUALITY", "voice": ["angus", "premium", "beef", "steak"] },
-            "VEGGIE": { "items": ["Veggie Burger"], "tag": "PLANT", "voice": ["veggie", "plant", "vegetarian"] }
-          }
-        },
-        {
-          "id": "chicken", "type": "selector", "title": "02 / 14 · CHICKEN", "key": "chicken",
-          "options": {
-            "CRISPY": { "items": ["Crispy Sandwich"], "tag": "TEXTURE", "voice": ["crispy", "fried chicken"] },
-            "GRILLED": { "items": ["Grilled Sandwich"], "tag": "HEALTH", "voice": ["grilled", "healthy"] },
-            "BUFFALO": { "items": ["Buffalo Sandwich"], "tag": "SPICY", "voice": ["buffalo", "spicy"] }
-          }
-        },
-        {
-          "id": "sides", "type": "selector", "title": "03 / 14 · SIDES", "key": "side",
-          "options": {
-            "POUTINE": { "items": ["Classic Poutine"], "tag": "COMFORT", "voice": ["poutine", "gravy"] },
-            "SIDES": { "items": ["Frings"], "tag": "CLASSIC", "voice": ["sides", "fries", "rings", "frings", "pickles"] }
-          }
-        },
-        {
-          "id": "value", "type": "selector", "title": "04 / 14 · VALUE", "key": "value",
-          "options": {
-            "JR_BURGERS": { "items": ["Jr. Burger"], "tag": "BUDGET", "voice": ["junior", "jr burger"] },
-            "SNACKS": { "items": ["Nuggets"], "tag": "QUICK", "voice": ["nuggets", "bites", "chicken bits"] },
-            "DESSERTS": { "items": ["Donuts"], "tag": "SWEET", "voice": ["dessert", "donut", "pie", "apple pie", "sweet"] }
-          }
-        },
-        {
-          "id": "drinks", "type": "selector", "title": "05 / 14 · DRINKS", "key": "drink",
-          "options": {
-            "SHAKES": { "items": ["Chocolate Shake"], "tag": "DESSERT", "voice": ["shake", "milkshake", "chocolate", "vanilla", "strawberry"] },
-            "FROZEN": { "items": ["Slushie"], "tag": "ENERGY", "voice": ["frozen", "slushie", "red bull", "slush"] },
-            "STANDARD": { "items": ["Pepsi"], "tag": "BASIC", "voice": ["drink", "soda", "pop", "coke", "pepsi", "coffee", "tea"] }
-          }
-        },
-        { "id": "final", "type": "final", "title": "06 / 14 · ORDER TICKET" },
-        // Logic Slides
-        { "id": "hunger", "type": "standard", "title": "07 / 14 · HUNGER", "visual": { "h1": "HOW HUNGRY?", "q": "Calibrating protein.", "txt": "High hunger favors Angus." }, "logic": { "txt": "Angus is 100% beef." }, "proof": { "ascii": "[ SATIETY ]" } },
-        { "id": "timing", "type": "selector", "title": "08 / 14 · TIMING", "key": "timing", "options": { "OFF-PEAK": { "items": ["After 2PM"], "tag": "SMART", "voice": ["off peak", "quiet", "late"] }, "PEAK": { "items": ["Lunch Rush"], "tag": "RISKY", "voice": ["peak", "rush", "busy"] } } },
-        { "id": "consistency", "type": "standard", "title": "09 / 14 · CONSISTENCY", "visual": { "h1": "EXECUTION RISK", "q": "Tolerate variance?", "txt": "Depends on staff." }, "logic": { "txt": "Human scooping has variance." }, "proof": { "ascii": "[ VARIANCE ]" } },
-        { "id": "patty-logic", "type": "standard", "title": "10 / 14 · PATTY LOGIC", "visual": { "h1": "TEXTURE", "q": "Mouthfeel?", "txt": "Original is softer." }, "logic": { "txt": "Angus holds toppings better." }, "proof": { "ascii": "[ DENSITY ]" } },
-        { "id": "method", "type": "standard", "title": "11 / 14 · THE RITUAL", "visual": { "h1": "GARNISH CONTROL", "q": "Why Harvey’s?", "txt": "Live assembly." }, "logic": { "txt": "Open counters force accountability." }, "proof": { "ascii": "[ ERRORS ]" } },
-        { "id": "value-stack", "type": "standard", "title": "12 / 14 · STACKING", "visual": { "h1": "MINIMIZE SPEND", "q": "Don't pay full price.", "txt": "Use Coupons." }, "logic": { "txt": "Coupon > CAA > Points." }, "proof": { "ascii": "[ SAVINGS ]" } },
-        // End Card
-        { "id": "brand-end", "type": "brand", "title": "13 / 14 · NATIONAL CHAMPION" },
-        // B2B Card
-        { "id": "b2b", "type": "contact", "title": "14 / 14 · BUSINESS INQUIRY" }
       ]
     };
 
     /* =========================================
        STATE & BUILDER
        ========================================= */
-    let USER_CART = {}; // START EMPTY
-
+    let USER_DATA = {}; 
     const container = document.getElementById('master-container');
     let slideElements = [];
     let currentIdx = 0;
@@ -584,34 +282,32 @@
     const TRIGGER_THRESHOLD = 0.9;
 
     function init() {
-        console.log("BOOTING SWIPE-OS v6.2...");
+        console.log("BOOTING SWIPE-OS v6.3...");
         
         CONFIG.slides.forEach((cfg, idx) => {
             const section = document.createElement('section');
             section.className = `main-slide ${idx === 0 ? 'active' : 'next'}`;
             section.id = cfg.id;
-            section.dataset.mode = cfg.type === 'selector' ? 'options' : 'standard';
+            
+            // Mode determination
+            let mode = 'static';
+            if(cfg.type === 'selector' || cfg.type === 'decision') mode = 'options';
+            section.dataset.mode = mode;
 
-            let content = '';
+            let innerHTML = `<div class="slide-header"><span class="header-title">${cfg.title}</span></div>`;
+            innerHTML += `<div class="carousel-viewport" data-id="${cfg.id}">`;
 
-            if (cfg.type === 'selector') {
-                let optionsHTML = '';
-                const keys = Object.keys(cfg.options);
-                
-                keys.forEach((k, kIdx) => {
-                    const opt = cfg.options[k];
-                    const itemsList = opt.items.map(i => `<li>${i}</li>`).join('');
-                    const prevText = kIdx > 0 ? `&larr; ${keys[kIdx-1]}` : '';
-                    const nextText = kIdx < keys.length - 1 ? `${keys[kIdx+1]} &rarr;` : '';
-
-                    optionsHTML += `
-                        <div class="sub-slide ${kIdx===0 ? 'opt-active' : 'opt-hidden'}" data-opt-idx="${kIdx}" data-val="${k}">
-                            <div class="role-label">${opt.tag}</div>
-                            <h1>${k}</h1>
-                            <div class="primary-question">${opt.note || 'Select Option'}</div>
-                            <div class="content-text">
-                                <ul class="item-list">${itemsList}</ul>
-                            </div>
+            if (cfg.type === 'selector' || cfg.type === 'decision') {
+                const opts = cfg.options;
+                opts.forEach((opt, i) => {
+                    const prevText = i > 0 ? `&larr; PREV` : '';
+                    const nextText = i < opts.length - 1 ? `NEXT &rarr;` : '';
+                    
+                    innerHTML += `
+                        <div class="sub-slide ${i===0 ? 'opt-active' : 'opt-hidden'}" data-opt-idx="${i}" data-val="${opt.id}">
+                            ${opt.tags ? `<div class="role-label">${opt.tags[0].toUpperCase()}</div>` : ''}
+                            <h1>${opt.label}</h1>
+                            <div class="primary-question">${opt.sub}</div>
                             <div class="nav-hint">
                                 <span style="flex:1; text-align:left;">${prevText}</span>
                                 <span style="flex:2; text-align:center; color:#fff; font-weight:bold;">&darr; PULL TO SELECT &darr;</span>
@@ -620,103 +316,55 @@
                         </div>
                     `;
                 });
-
-                content = `
-                    <div class="slide-header"><span class="header-title">${cfg.title}</span></div>
-                    <div class="carousel-viewport" data-key="${cfg.key}" data-total="${keys.length}">
-                        ${optionsHTML}
-                    </div>`;
             }
 
-            else if (cfg.type === 'standard') {
-                content = `
-                    <div class="slide-header"><span class="header-title">${cfg.title}</span></div>
-                    <div class="carousel-viewport">
-                        <div class="sub-slide layer-1">
-                            <h1>${cfg.visual.h1}</h1>
-                            <div class="primary-question">${cfg.visual.q}</div>
-                            <div class="content-text">${cfg.visual.txt}</div>
-                            <small style="color:#666; margin-top:30px; font-size:0.7rem;">&darr; Pull Down &darr;</small>
-                        </div>
-                        <div class="sub-slide layer-2" style="opacity:0;">
-                            <div class="role-label">LOGIC</div>
-                            <div class="content-text">${cfg.logic.txt}</div>
-                        </div>
-                        <div class="sub-slide layer-3" style="opacity:0;">
-                            <div class="role-label">PROOF</div>
-                            <div class="ascii-box">${cfg.proof.ascii}</div>
+            else if (cfg.type === 'llm_summary') {
+                cfg.cards.forEach((card, i) => {
+                    // Simplified for demo: Just showing first card as active
+                    if(i===0) {
+                        innerHTML += `
+                        <div class="sub-slide static">
+                            <div class="role-label">AI RECOMMENDATION</div>
+                            <h1>${card.label}</h1>
+                            <div class="content-text">${card.sub}</div>
+                            <small style="color:#666; margin-top:20px;">(Simulated Logic)</small>
+                        </div>`;
+                    }
+                });
+            }
+
+            else if (cfg.type === 'status') {
+                innerHTML += `
+                    <div class="sub-slide static">
+                        <div class="status-box">
+                            <span class="status-val">${cfg.display}</span>
+                            <div class="content-text">Zomato • Swiggy • Blinkit • Local</div>
                         </div>
                     </div>`;
             }
 
             else if (cfg.type === 'final') {
-                content = `
-                    <div class="slide-header"><span class="header-title">${cfg.title}</span></div>
-                    <div class="carousel-viewport">
-                        <div class="sub-slide layer-1">
-                            <div class="verdict-container">
-                                <div class="choice-header">YOUR ORDER</div>
-                                <div class="input-group" id="final-inputs"></div>
-                                <div class="choice-header">PRIMARY SELECTION</div>
-                                <div class="hero-section">
-                                    <div class="hero-burger" id="hero-burger-name">NO BURGER</div>
-                                    <div class="hero-sub" style="display:none;">FLAME-GRILLED</div>
-                                </div>
-                                <div class="final-actions">
-                                    <button class="btn btn-wa" onclick="sendWhatsappTicket()">SAVE TICKET</button>
-                                    <button class="btn btn-support" onclick="sendSupport()">SUPPORT</button>
-                                </div>
-                            </div>
+                let btns = '';
+                cfg.actions.forEach(act => {
+                    let onclick = '';
+                    if(act.action === 'whatsapp') onclick = `window.open('https://wa.me/916351537770', '_blank')`;
+                    if(act.action === 'b2b') onclick = `window.open('https://wa.me/916351537770?text=BuildThis', '_blank')`;
+                    
+                    btns += `<button class="btn ${act.action==='whatsapp'?'btn-wa':''}" onclick="${onclick}">
+                        ${act.label}<br><span style="font-size:0.7rem;opacity:0.7">${act.sub}</span>
+                    </button>`;
+                });
+
+                innerHTML += `
+                    <div class="sub-slide static">
+                        <div class="final-actions" style="margin-top:auto; padding-bottom:40px;">
+                            ${btns}
                         </div>
                     </div>`;
             }
 
-            else if (cfg.type === 'brand') {
-                content = `
-                    <div class="slide-header"><span class="header-title">${cfg.title}</span></div>
-                    <div class="carousel-viewport">
-                        <div class="sub-slide layer-1">
-                            <div class="verdict-container" style="justify-content:center;">
-                                <div class="brand-logo-placeholder">H</div>
-                                <div class="choice-header" style="color:var(--brand-orange); margin-bottom:10px;">100% CANADIAN</div>
-                                <h1>THE BURGER BOSS</h1>
-                                <div class="primary-question" style="text-align:center;">"It's a Beautiful Thing"</div>
-                                <div class="content-text" style="text-align:center;">
-                                    Founded in 1959. Harvey's garnishes every burger to order. 
-                                </div>
-                                <div class="final-actions" style="margin-top:40px;">
-                                    <button class="btn btn-share" onclick="copyLink()">SHARE THIS APP</button>
-                                    <button class="btn" onclick="location.reload()">START OVER</button>
-                                    <button class="btn btn-insta" onclick="followInsta()">FOLLOW ON INSTA</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
-            }
-
-            else if (cfg.type === 'contact') {
-                content = `
-                    <div class="slide-header"><span class="header-title">${cfg.title}</span></div>
-                    <div class="carousel-viewport">
-                        <div class="sub-slide layer-1">
-                            <div class="verdict-container" style="justify-content:center; text-align:center;">
-                                <h1>Contact DECIDER</h1>
-                                <div class="b2b-highlight">
-                                    Get <br>
-                                    <span class="b2b-bold">CUSTOM</span> <br>
-                                    Catalogue <br>
-                                    Menu <br>
-                                    for your business purpose
-                                </div>
-                                <div class="final-actions" style="margin-top:40px;">
-                                    <button class="btn btn-wa" onclick="contactDecider()">WHATSAPP US</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
-            }
-
-            section.innerHTML = content;
+            innerHTML += `</div>`;
+            section.innerHTML = innerHTML;
             container.appendChild(section);
         });
 
@@ -725,81 +373,8 @@
     }
 
     /* =========================================
-       LOGIC ENGINE (PATCH 5 - DATA ABSTRACTION)
+       TOUCH & NAV ENGINE
        ========================================= */
-    function getRenderData() {
-        return USER_CART;
-    }
-
-    function updateResult() {
-        const container = document.getElementById('final-inputs');
-        const burgerName = document.getElementById('hero-burger-name');
-        const heroSub = document.querySelector('.hero-sub');
-        
-        const data = getRenderData();
-
-        if (data.burger) {
-            burgerName.innerText = data.burger;
-            heroSub.innerText = "FLAME-GRILLED";
-            heroSub.style.display = 'block';
-        } else {
-            burgerName.innerText = "NO BURGER";
-            heroSub.style.display = 'none';
-        }
-
-        let html = '';
-        const keys = ['chicken', 'side', 'drink', 'timing', 'value']; 
-        
-        let hasItems = false;
-        keys.forEach(k => {
-            if(data[k]) {
-                hasItems = true;
-                html += `
-                <div class="input-row">
-                    <span class="input-key">${k.toUpperCase()}</span>
-                    <span class="input-val">${data[k]}</span>
-                </div>`;
-            }
-        });
-        
-        if (!hasItems && !data.burger) {
-            html = '<div style="text-align:center; color:#666; padding:20px;">Cart is empty.<br>Speak or swipe to add items.</div>';
-        }
-        
-        container.innerHTML = html;
-    }
-
-    function sendWhatsappTicket() {
-        if (!SES_BEACON_SENT) {
-            console.log("Telemetry sent for session: " + CURRENT_SES_ID);
-            SES_BEACON_SENT = true;
-        }
-
-        let msg = "MY HARVEY'S ORDER:\n";
-        Object.keys(USER_CART).forEach(k => msg += `- ${k.toUpperCase()}: ${USER_CART[k]}\n`);
-        window.open(`https://wa.me/916351537770?text=${encodeURIComponent(msg)}`, '_blank');
-    }
-
-    function sendSupport() {
-        const msg = "I needed assistance with my order flow. Thanks!. How can I Support";
-        window.open(`https://wa.me/916351537770?text=${encodeURIComponent(msg)}`, '_blank');
-    }
-
-    function contactDecider() {
-        window.open('https://wa.me/916351537770?text=I%27m%20interested', '_blank');
-    }
-
-    function copyLink() {
-        const url = "https://dharamdaxini.github.io/via.decide.food/";
-        navigator.clipboard.writeText(url).then(() => {
-            showToast('LINK COPIED TO CLIPBOARD');
-        });
-    }
-
-    function followInsta() {
-        window.open('https://www.instagram.com/harveys?igsh=MWY0M3VyemQ2NHFjZw==', '_blank');
-    }
-
     function showToast(msg) {
         const t = document.getElementById('toast');
         t.innerText = msg;
@@ -809,189 +384,28 @@
 
     function goToSlide(idx) {
         if (idx < 0 || idx >= slideElements.length) return;
-
+        
         const curr = slideElements[currentIdx];
-        curr.classList.remove('active', 'deck-active');
+        curr.classList.remove('active');
         
-        if (idx > currentIdx) {
-            curr.classList.add('prev');
-            curr.classList.remove('next');
-        } else {
-            curr.classList.add('next');
-            curr.classList.remove('prev');
-        }
-        
-        const deck = curr.querySelector('.carousel-viewport')._deck;
-        if(deck && deck.slides) updateLayers(deck.slides, 0);
+        if (idx > currentIdx) { curr.classList.add('prev'); curr.classList.remove('next'); } 
+        else { curr.classList.add('next'); curr.classList.remove('prev'); }
 
         currentIdx = idx;
         const next = slideElements[currentIdx];
-        
         next.classList.remove('prev', 'next');
         next.classList.add('active');
-
-        if(next.id === 'final') updateResult();
-
+        
         dragRatio = 0;
         document.getElementById('depth-fill').style.height = '0%';
     }
 
-    function updateLayers(slides, ratio) {
-        if(!slides[0]) return; 
-        if(slides[0].closest('.main-slide').dataset.mode === 'options') return;
-
-        const vis = slides[0];
-        const log = slides[1];
-        const prf = slides[2];
-
-        if (ratio > 0.1) {
-            vis.style.transform = `translateY(${ratio * -80}px) scale(${1 - ratio*0.1})`;
-            vis.style.opacity = Math.max(0, 1 - ratio*3);
-        } else {
-            vis.style.transform = ''; vis.style.opacity = 1;
-        }
-
-        if (log) {
-            if (ratio > 0.25 && ratio < 0.65) {
-                log.style.opacity = Math.min(1, (ratio - 0.25) * 4);
-                log.style.transform = `translateY(${100 - (ratio-0.25)*300}px)`;
-            } else if (ratio > 0.65) {
-                log.style.opacity = Math.max(0, 1 - (ratio - 0.65) * 4);
-                log.style.transform = `translateY(-50px)`;
-            } else {
-                log.style.opacity = 0; log.style.transform = `translateY(100px)`;
-            }
-        }
-
-        if (prf) {
-            if (ratio > 0.55) {
-                prf.style.opacity = Math.min(1, (ratio - 0.55) * 4);
-                prf.style.transform = `translateY(${100 - (ratio-0.55)*300}px)`;
-            } else {
-                prf.style.opacity = 0; prf.style.transform = `translateY(100px)`;
-            }
-        }
-
-        const bar = document.getElementById('depth-fill');
-        bar.style.height = (ratio * 100) + '%';
-        if(ratio < 0.3) bar.style.background = '#333';
-        else if(ratio < 0.6) bar.style.background = '#ff671f';
-        else if(ratio < 0.9) bar.style.background = '#00e676';
-        else bar.style.background = '#fff';
-    }
-
-    /* =========================================
-       LLM INTERFACE (PATCH 3 & 4)
-       ========================================= */
-    async function LLM_DECIDE(payload) {
-        // Placeholder for Gemini integration
-        // Currently logs the potential payload
-        console.log("LLM_DECIDE Payload:", payload);
-        console.log("Using training data:", LLM_TRAINING_DATA);
-        return null;
-    }
-
-    /* =========================================
-       NLP ENGINE
-       ========================================= */
-    let isListening = false;
-    let recognition;
-
-    function toggleListenMode() {
-        if (!('webkitSpeechRecognition' in window)) return alert("Browser not supported. Try Chrome/Safari.");
-        
-        const btn = document.getElementById('mic-toggle');
-        const feedback = document.getElementById('voice-feedback');
-        
-        if (isListening) {
-            recognition.stop();
-            isListening = false;
-            btn.classList.remove('listening');
-            feedback.classList.remove('visible');
-        } else {
-            recognition = new webkitSpeechRecognition();
-            recognition.continuous = false;
-            recognition.lang = 'en-US';
-            
-            recognition.onstart = () => { 
-                isListening = true; 
-                btn.classList.add('listening'); 
-                feedback.classList.add('visible');
-                feedback.innerText = "LISTENING...";
-            };
-            recognition.onend = () => { 
-                isListening = false; 
-                btn.classList.remove('listening'); 
-                feedback.classList.remove('visible');
-            };
-            
-            recognition.onresult = (e) => {
-                const txt = e.results[0][0].transcript.toLowerCase();
-                feedback.innerText = `HEARD: "${txt}"`;
-                setTimeout(() => processVoice(txt), 500); 
-            };
-            recognition.start();
-        }
-    }
-
-    function processVoice(cmd) {
-        // 1. Navigation
-        if (cmd.includes("next")) return goToSlide(currentIdx + 1);
-        if (cmd.includes("back")) return goToSlide(currentIdx - 1);
-        if (cmd.includes("start over") || cmd.includes("reset")) return location.reload();
-
-        // 2. Actions
-        if (cmd.includes("ticket") || cmd.includes("save")) return sendWhatsappTicket();
-        if (cmd.includes("support")) return sendSupport();
-        if (cmd.includes("share")) return copyLink();
-
-        // 3. NLP Intent: Add vs Remove
-        const isRemove = cmd.match(/\b(remove|delete|no|clear|cancel|without)\b/);
-        
-        // 4. Scan Config for Matches
-        CONFIG.slides.forEach(s => {
-            if (s.type === 'selector') {
-                Object.keys(s.options).forEach(optKey => {
-                    const opt = s.options[optKey];
-                    if (opt.voice && opt.voice.some(v => cmd.includes(v))) {
-                        
-                        if (isRemove) {
-                            if(USER_CART[s.key] === optKey) {
-                                delete USER_CART[s.key];
-                                showToast(`REMOVED: ${optKey}`);
-                            }
-                        } else {
-                            USER_CART[s.key] = optKey;
-                            showToast(`ADDED: ${optKey}`);
-                        }
-                        
-                        // Hot Reload Ticket if Visible
-                        if(slideElements[currentIdx].id === 'final') updateResult();
-                    }
-                });
-            }
-        });
-
-        // LLM Hook
-        LLM_DECIDE({
-            session_id: CURRENT_SES_ID,
-            command: cmd,
-            cart: USER_CART
-        });
-    }
-
-    /* =========================================
-       TOUCH ENGINE (PATCH 2 - RECURSION FIX)
-       ========================================= */
     function attachEvents() {
-        if (container.dataset.listenersAttached) return;
-        container.dataset.listenersAttached = "true";
-
         let startX = 0, startY = 0;
 
         document.querySelectorAll('.carousel-viewport').forEach(view => {
             const slides = Array.from(view.querySelectorAll('.sub-slide'));
-            view._deck = { slides, currOpt: 0 };
+            view._currOpt = 0;
             
             let isDragging = false;
             let axis = null;
@@ -1011,21 +425,19 @@
                 if(!axis) axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
 
                 const parentSlide = view.closest('.main-slide');
-                const isOptions = parentSlide.dataset.mode === 'options';
+                const mode = parentSlide.dataset.mode;
 
-                if(axis === 'y' && dy < 0) return; 
-
-                if(isOptions) {
+                // OPTIONS MODE: Horizontal Swipe
+                if(mode === 'options') {
                     if(axis === 'x') slides.forEach(s => s.style.transform = `translateX(${dx}px)`);
-                    if(axis === 'y' && dy > 0) slides.forEach(s => s.style.transform = `translateY(${dy * 0.3}px)`);
+                    
+                    // Pull to Select
+                    if(axis === 'y' && dy > 0) {
+                        e.preventDefault();
+                        const r = Math.min(dy/MAX_DRAG, 1);
+                        document.getElementById('depth-fill').style.height = (r*100)+'%';
+                    }
                     return;
-                }
-
-                if(axis === 'y' && dy > 0) {
-                    e.preventDefault();
-                    dragRatio = Math.min(dy / MAX_DRAG, 1);
-                    updateLayers(view._deck.slides, dragRatio);
-                    parentSlide.classList.add('deck-active');
                 }
             }, {passive: false});
 
@@ -1036,66 +448,51 @@
                 const dx = e.changedTouches[0].clientX - startX;
                 const dy = e.changedTouches[0].clientY - startY;
                 const parentSlide = view.closest('.main-slide');
-                const isOptions = parentSlide.dataset.mode === 'options';
+                const mode = parentSlide.dataset.mode;
 
-                if (axis === 'y' && dy < -60) {
-                    if (currentIdx > 0) {
-                        goToSlide(currentIdx - 1);
-                        return;
-                    }
+                // Navigation: Back (Swipe Up)
+                if (axis === 'y' && dy < -50) {
+                    if(currentIdx > 0) goToSlide(currentIdx - 1);
+                    return;
                 }
 
-                if(isOptions) {
-                    const key = view.dataset.key;
-                    const total = parseInt(view.dataset.total);
-                    let curr = view._deck.currOpt;
+                // Options Logic
+                if(mode === 'options') {
+                    const total = slides.length;
+                    let curr = view._currOpt;
 
+                    // Horizontal Change
                     if(axis === 'x' && Math.abs(dx) > 50) {
                         if(dx < 0 && curr < total - 1) curr++; 
                         else if(dx > 0 && curr > 0) curr--;   
                         
-                        view._deck.currOpt = curr;
-                        
+                        view._currOpt = curr;
                         slides.forEach((s, i) => {
-                            if(i === curr) {
-                                s.classList.remove('opt-hidden');
-                                s.classList.add('opt-active');
-                                USER_CART[key] = s.dataset.val;
-                            } else {
-                                s.classList.remove('opt-active');
-                                s.classList.add('opt-hidden');
-                            }
+                            s.style.transform = '';
+                            if(i === curr) { s.classList.remove('opt-hidden'); s.classList.add('opt-active'); }
+                            else { s.classList.remove('opt-active'); s.classList.add('opt-hidden'); }
                         });
+                    } else {
+                        slides.forEach(s => s.style.transform = '');
                     }
-                    
-                    slides.forEach(s => s.style.transform = '');
 
+                    // Vertical Select
                     if(axis === 'y' && dy > 60) {
-                        if(!USER_CART[key]) USER_CART[key] = slides[view._deck.currOpt].dataset.val;
+                        const val = slides[curr].dataset.val;
+                        USER_DATA[parentSlide.id] = val;
+                        showToast(`SELECTED: ${val}`);
                         goToSlide(currentIdx + 1);
                     }
+                    document.getElementById('depth-fill').style.height = '0%';
                     return;
                 }
 
-                if(axis === 'y' && dy > 0) {
-                    if(dragRatio > TRIGGER_THRESHOLD) {
-                        goToSlide(currentIdx + 1);
-                    } else {
-                        parentSlide.classList.remove('deck-active');
-                        updateLayers(view._deck.slides, 0);
-                        document.getElementById('depth-fill').style.height = '0%';
-                    }
-                    dragRatio = 0;
+                // Static/Status Slides: Just Next
+                if(axis === 'y' && dy > 50) {
+                    goToSlide(currentIdx + 1);
                 }
             });
         });
-    }
-
-    // PATCH 2: SENSOR HOOK (PLACEHOLDER)
-    function requestSensorAccess() {
-        if (SENSORS_ENABLED) return;
-        SENSORS_ENABLED = true;
-        console.log("Sensors initialized (Mouse/Touch hybrid)");
     }
 
     init(); // BOOT
