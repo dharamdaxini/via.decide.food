@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Harvey's Decision Engine | SWIPE-OS v4.9</title>
+    <style>
+        /* =========================================
+           CORE SYSTEM
+           ========================================= */
+        :root {
+            --brand-orange: #ff671f;
+            --brand-bg: #0a0a0a;
+            --text-main: #f0f0f0;
+            --accent-go: #00e676; 
+            --font-tech: 'Courier New', monospace;
+            --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        html, body {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            background-color: var(--brand-bg);
+            color: var(--text-main);
+            font-family: var(--font-ui);
+            overflow: hidden;
+        }
+
+        #master-container {
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-slide {
+            height: 100vh;
+            width: 100vw;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            background: var(--brand-bg);
+            transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+            will-change: transform;
+        }
+
+        .main-slide.prev { transform: translateY(-100%); }
+        .main-slide.active { transform: translateY(0); z-index: 10; }
+        .main-slide.next { transform: translateY(100%); z-index: 20; }
+
+        .slide-header {
+            padding: 20px;
+            border-left: 3px solid var(--brand-orange);
+            height: 70px;
+            flex-shrink: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            transition: opacity 0.3s;
+        }
+        
+        .main-slide.deck-active .slide-header { opacity: 0.2; }
+        .main-slide.deck-active { background: #000; }
+
+        .header-title {
+            font-family: var(--font-tech);
+            font-size: 0.75rem;
+            color: var(--brand-orange);
+            letter-spacing: 1px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        /* =========================================
+           CONTENT DECK
+           ========================================= */
+        .carousel-viewport {
+            position: relative;
+            flex-grow: 1;
+            width: 100%;
+            touch-action: none;
+        }
+
+        .sub-slide {
+            position: absolute;
+            inset: 0;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(0) scale(1);
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease;
+        }
+
+        /* Standard Layers */
+        .sub-slide.layer-1 { z-index: 30; opacity: 1; pointer-events: auto; }
+        .sub-slide.layer-2 { z-index: 20; }
+        .sub-slide.layer-3 { z-index: 10; }
+
+        /* Selector Options */
+        .sub-slide.opt-active { z-index: 30; opacity: 1; pointer-events: auto; transform: translateX(0); }
+        .sub-slide.opt-hidden { z-index: 0; opacity: 0; pointer-events: none; }
+
+        h1 { font-size: 1.8rem; margin: 0 0 15px 0; line-height: 1; letter-spacing: -1px; color: var(--brand-orange); }
+        .primary-question { font-size: 1.1rem; color: #fff; margin-bottom: 25px; line-height: 1.4; font-weight: 600; }
+        
+        .content-text { 
+            font-size: 0.9rem; 
+            color: #aaa; 
+            line-height: 1.6; 
+            max-height: 40vh;
+            overflow-y: auto;
+        }
+
+        .item-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 10px;
+        }
+        .item-list li {
+            padding: 6px 0;
+            border-bottom: 1px solid #222;
+            font-size: 0.85rem;
+            color: #ccc;
+        }
+        .item-list li:before { content: "• "; color: var(--brand-orange); }
+
+        .role-label {
+            font-family: var(--font-tech);
+            font-size: 0.6rem;
+            color: #000;
+            background: var(--accent-go);
+            padding: 4px 8px;
+            border-radius: 4px;
+            width: fit-content;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .nav-hint {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+            font-family: var(--font-tech);
+            font-size: 0.7rem;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .ascii-box {
+            background: #080808;
+            border: 1px solid #333;
+            color: var(--accent-go);
+            font-family: var(--font-tech);
+            font-size: 0.75rem;
+            padding: 15px;
+            border-radius: 6px;
+            white-space: pre;
+            line-height: 1.2;
+            margin-top: 20px;
+        }
+
+        /* =========================================
+           FINAL VERDICT UI
+           ========================================= */
+        .cart-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+
+        .cart-item {
+            background: #111;
+            border-left: 3px solid var(--brand-orange);
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cart-cat { font-family: var(--font-tech); font-size: 0.6rem; color: #666; }
+        .cart-val { font-size: 0.9rem; font-weight: 700; color: #fff; }
+
+        .final-actions {
+            display: grid;
+            gap: 12px;
+            padding: 0;
+            margin-top: auto;
+            margin-bottom: 20px;
+        }
+        .btn {
+            background: #222;
+            color: #fff;
+            border: 1px solid #333;
+            padding: 18px;
+            width: 100%;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        .btn-wa { background: #25D366; color: #000; border: none; }
+
+        #depth-fill {
+            position: fixed; right: 0; top: 0; bottom: 0; width: 4px;
+            background: #333; z-index: 900;
+            height: 0%; transition: height 0.05s linear, background 0.3s;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="master-container">
+    </div>
+<div id="depth-fill"></div>
+
+<script>
+    /* =========================================
+       CONFIG: HARVEY'S 2026 MENU STRUCTURE
+       ========================================= */
+    const CONFIG = {
+      "version": "HARVEYS_MENU_2026_V1",
+      "slides": [
+        // 1. BURGERS
+        {
+          "id": "burger",
+          "type": "selector",
+          "title": "01 / 12 · FLAME-GRILLED BURGERS",
+          "key": "burger",
+          "options": {
+            "ORIGINAL": {
+              "items": ["Original Burger", "Original w/ Cheese", "Original w/ Cheese & Bacon", "BIG Harv Original"],
+              "note": "Formed & seasoned Canadian beef",
+              "tag": "NOSTALGIA"
+            },
+            "ANGUS": {
+              "items": ["Angus Burger", "Angus w/ Cheese & Bacon", "BIG Harv Angus"],
+              "note": "100% Canadian Angus beef",
+              "tag": "QUALITY"
+            },
+            "VEGGIE": {
+              "items": ["Veggie Burger"],
+              "note": "Grilled. Possible cross-contamination",
+              "tag": "PLANT"
+            }
+          }
+        },
+        // 2. CHICKEN
+        {
+          "id": "chicken",
+          "type": "selector",
+          "title": "02 / 12 · CHICKEN & WRAPS",
+          "key": "chicken",
+          "options": {
+            "CRISPY": {
+              "items": ["Crispy Chicken Sandwich", "Chicken BLT (Crispy)", "Crispy Chicken Wrap", "Chicken Strips (4pc)", "Nuggets (5/8/12pc)"],
+              "tag": "TEXTURE"
+            },
+            "GRILLED": {
+              "items": ["Grilled Chicken Sandwich", "Chicken BLT (Grilled)", "Grilled Chicken Wrap"],
+              "note": "Lowest calorie option",
+              "tag": "HEALTH"
+            },
+            "BUFFALO": {
+              "items": ["Buffalo Chicken Sandwich", "Buffalo Chicken Wrap", "Buffalo Nuggets"],
+              "tag": "SPICY"
+            }
+          }
+        },
+        // 3. SIDES
+        {
+          "id": "sides",
+          "type": "selector",
+          "title": "03 / 12 · SIDES & POUTINES",
+          "key": "side",
+          "options": {
+            "POUTINE": {
+              "items": ["Classic Poutine", "Buffalo Chicken Poutine", "Bacon Dbl Cheese Poutine", "Chicken Bacon Ranch Poutine"],
+              "note": "Vegetarian Gravy",
+              "tag": "COMFORT"
+            },
+            "SIDES": {
+              "items": ["Frings®", "French Fries", "Onion Rings", "Deep Fried Pickles"],
+              "note": "Skin-on Russet",
+              "tag": "CLASSIC"
+            }
+          }
+        },
+        // 4. VALUE
+        {
+          "id": "value",
+          "type": "selector",
+          "title": "04 / 12 · VALUE PICKS",
+          "key": "value",
+          "options": {
+            "JR_BURGERS": {
+              "items": ["Jr. Burger", "Jr. Cheeseburger", "Jr. Bacon Cheeseburger"],
+              "tag": "BUDGET"
+            },
+            "JR_CHICKEN": {
+              "items": ["Jr. Crispy", "Jr. Buffalo"],
+              "tag": "SNACK"
+            },
+            "SNACKS": {
+              "items": ["Small Frings", "Small Deep Fried Pickles", "5pc Nuggets"],
+              "tag": "QUICK"
+            },
+            "DESSERTS": {
+              "items": ["Cinnamon Sugar Donuts (4/8)", "Apple Pie"],
+              "tag": "SWEET"
+            }
+          }
+        },
+        // 5. DRINKS
+        {
+          "id": "drinks",
+          "type": "selector",
+          "title": "05 / 12 · DRINKS & TREATS",
+          "key": "drink",
+          "options": {
+            "SHAKES": {
+              "items": ["Chocolate", "Vanilla", "Strawberry", "Orange Cream", "Salted Caramel", "Oreo", "Skor"],
+              "note": "Hand-Spun",
+              "tag": "DESSERT"
+            },
+            "FROZEN": {
+              "items": ["Frozen Red Bull (Lemonade, Blue Rasp, Cherry, Peach)", "Slushies", "Slushie w/ Nerds"],
+              "tag": "ENERGY"
+            },
+            "STANDARD": {
+              "items": ["Pepsi", "Iced Tea", "Milk", "Chocolate Milk", "Coffee", "Tea"],
+              "tag": "BASIC"
+            }
+          }
+        },
+        // 6. HUNGER
+        {
+          "id": "hunger",
+          "type": "standard",
+          "title": "06 / 12 · HUNGER CALIBRATION",
+          "visual": {
+            "h1": "HOW HUNGRY?",
+            "q": "Calibrating protein requirements.",
+            "txt": "High hunger favors Angus (Dense). Low hunger favors Original (Light)."
+          },
+          "logic": {
+            "txt": "<strong>Analysis:</strong> Angus is 100% beef. Original contains filler/seasoning blend. Protein density dictates satiety duration."
+          },
+          "proof": {
+            "ascii": "[ SATIETY INDEX ]\nOriginal: [==      ] 2hrs\nAngus   : [======  ] 5hrs"
+          }
+        },
+        // 7. TIMING
+        {
+          "id": "timing",
+          "type": "standard",
+          "title": "07 / 12 · TIMING STRATEGY",
+          "visual": {
+            "h1": "THE BOTTLENECK",
+            "q": "When are you visiting?",
+            "txt": "Customization creates a queue bottleneck. Avoid Peak Lunch hours."
+          },
+          "logic": {
+            "txt": "<strong>Queue Theory:</strong> 1 indecisive customer adds 45s to wait time. At 12:00PM, this compounds exponentially."
+          },
+          "proof": {
+            "ascii": "[ PEAK HOURS ]\n(11:30-1:30) -> AVOID\n(3:00-5:00)  -> GO"
+          }
+        },
+        // 8. CONSISTENCY
+        {
+          "id": "consistency",
+          "type": "standard",
+          "title": "08 / 12 · HUMAN FACTOR",
+          "visual": {
+            "h1": "EXECUTION RISK",
+            "q": "Can you tolerate inconsistency?",
+            "txt": "Unlike pre-wrapped burgers, your value depends on the specific garnish operator."
+          },
+          "logic": {
+            "txt": "<strong>Variance Analysis:</strong> Human scooping has +/- 20% variance. Automated dispensers (McD) have +/- 2%."
+          },
+          "proof": {
+            "ascii": "[ SCOOP VARIANCE ]\nTarget : 15g\nActual : 10g - 25g\nRisk   : High"
+          }
+        },
+        // 9. PATTY LOGIC (RECAP)
+        {
+          "id": "patty-logic",
+          "type": "standard",
+          "title": "09 / 12 · PATTY ARCHITECTURE",
+          "visual": {
+            "h1": "TEXTURE PROFILE",
+            "q": "The Mouthfeel Difference.",
+            "txt": "Original is softer, processed for consistency. Angus is coarser, steak-like cut."
+          },
+          "logic": {
+            "txt": "<strong>Structural Integrity:</strong> Angus holds toppings better without bun collapse. Original absorbs sauce faster."
+          },
+          "proof": {
+            "ascii": "[ DENSITY ]\nOriginal: [====    ] Soft\nAngus   : [========] Firm"
+          }
+        },
+        // 10. METHOD
+        {
+          "id": "method",
+          "type": "standard",
+          "title": "10 / 12 · THE RITUAL",
+          "visual": {
+            "h1": "GARNISH CONTROL",
+            "q": "Why Harvey’s feels different",
+            "txt": "Live assembly at the garnish counter. Slower, but fully transparent."
+          },
+          "logic": {
+            "txt": "Closed kitchens hide variance. Open counters force accountability."
+          },
+          "proof": {
+            "ascii": "[ ORDER ERROR RATE ]\nFAST FOOD : ||||| 12%\nHARVEY'S  : | 2%"
+          }
+        },
+        // 11. VALUE
+        {
+          "id": "value-stack",
+          "type": "standard",
+          "title": "11 / 12 · VALUE STACKING",
+          "visual": {
+            "h1": "MINIMIZE SPEND",
+            "q": "Don't pay menu price.",
+            "txt": "Stack coupons or CAA (10%). Scene+ points have the lowest ROI."
+          },
+          "logic": {
+            "txt": "<strong>Discount Hierarchy:</strong> Paper Coupon > App Offer > CAA > Points."
+          },
+          "proof": {
+            "ascii": "[ SAVINGS ]\nCoupon : -$4.00\nCAA    : -$1.50\nPoints : -$0.80"
+          }
+        },
+        // 12. VERDICT
+        {
+          "id": "final",
+          "type": "final",
+          "title": "12 / 12 · ORDER TICKET"
+        }
+      ]
+    };
+
+    /* =========================================
+       STATE & BUILDER
+       ========================================= */
+    let USER_CART = {
+        burger: 'ORIGINAL',
+        chicken: 'CRISPY',
+        poutine: 'CLASSIC',
+        side: 'FRINGS',
+        drink: 'SHAKE'
+    };
+
+    const container = document.getElementById('master-container');
+    let slideElements = [];
+    let currentIdx = 0;
+    let dragRatio = 0;
+    const MAX_DRAG = 300; 
+    const TRIGGER_THRESHOLD = 0.9;
+
+    function init() {
+        console.log("BOOTING SWIPE-OS v4.9 (EXTENDED)...");
+        
+        // Build Slides dynamically
+        CONFIG.slides.forEach((cfg, idx) => {
+            const section = document.createElement('section');
+            section.className = `main-slide ${idx === 0 ? 'active' : 'next'}`;
+            section.id = cfg.id;
+            section.dataset.mode = cfg.type === 'selector' ? 'options' : 'standard';
+
+            let content = '';
+
+            // TYPE: SELECTOR (Dynamic Carousel)
+            if (cfg.type === 'selector') {
+                let optionsHTML = '';
+                const keys = Object.keys(cfg.options);
+                
+                keys.forEach((k, kIdx) => {
+                    const opt = cfg.options[k];
+                    const itemsList = opt.items.map(i => `<li>${i}</li>`).join('');
+                    const opacity = kIdx === 0 ? 1 : 0;
+                    const prevText = kIdx > 0 ? `&larr; ${keys[kIdx-1]}` : '';
+                    const nextText = kIdx < keys.length - 1 ? `${keys[kIdx+1]} &rarr;` : '';
+
+                    optionsHTML += `
+                        <div class="sub-slide ${kIdx===0 ? 'opt-active' : 'opt-hidden'}" data-opt-idx="${kIdx}" data-val="${k}">
+                            <div class="role-label">${opt.tag}</div>
+                            <h1>${k}</h1>
+                            <div class="primary-question">${opt.note || 'Select Option'}</div>
+                            <div class="content-text">
+                                <ul class="item-list">${itemsList}</ul>
+                            </div>
+                            <div class="nav-hint">
+                                <span style="flex:1; text-align:left;">${prevText}</span>
+                                <span style="flex:2; text-align:center; color:#fff; font-weight:bold;">&darr; PULL TO SELECT &darr;</span>
+                                <span style="flex:1; text-align:right;">${nextText}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                content = `
+                    <div class="slide-header"><span class="header-title">${cfg.title}</span></div>
+                    <div class="carousel-viewport" data-key="${cfg.key}" data-total="${keys.length}">
+                        ${optionsHTML}
+                    </div>`;
+            }
+
+            // TYPE: STANDARD (Alchemist Physics)
+            else if (cfg.type === 'standard') {
+                content = `
+                    <div class="slide-header"><span class="header-title">${cfg.title}</span></div>
+                    <div class="carousel-viewport">
+                        <div class="sub-slide layer-1">
+                            <h1>${cfg.visual.h1}</h1>
+                            <div class="primary-question">${cfg.visual.q}</div>
+                            <div class="content-text">${cfg.visual.txt}</div>
+                            <small style="color:#666; margin-top:30px; font-size:0.7rem;">&darr; Pull Down &darr;</small>
+                        </div>
+                        <div class="sub-slide layer-2" style="opacity:0;">
+                            <div class="role-label">LOGIC</div>
+                            <div class="content-text">${cfg.logic.txt}</div>
+                        </div>
+                        <div class="sub-slide layer-3" style="opacity:0;">
+                            <div class="role-label">PROOF</div>
+                            <div class="ascii-box">${cfg.proof.ascii}</div>
+                        </div>
+                    </div>`;
+            }
+
+            // TYPE: FINAL
+            else if (cfg.type === 'final') {
+                content = `
+                    <div class="slide-header"><span class="header-title">${cfg.title}</span></div>
+                    <div class="carousel-viewport">
+                        <div class="sub-slide layer-1">
+                            <div class="role-label">VERDICT</div>
+                            <div id="final-cart-display" class="cart-grid">
+                                </div>
+                            <div class="final-actions">
+                                <button class="btn btn-wa" onclick="sendWhatsapp()">SAVE TICKET</button>
+                                <button class="btn" onclick="location.reload()">RESET</button>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+
+            section.innerHTML = content;
+            container.appendChild(section);
+        });
+
+        slideElements = Array.from(document.querySelectorAll('.main-slide'));
+        attachEvents();
+    }
+
+    /* =========================================
+       LOGIC ENGINE
+       ========================================= */
+    function updateResult() {
+        const grid = document.getElementById('final-cart-display');
+        grid.innerHTML = '';
+        
+        Object.keys(USER_CART).forEach(k => {
+            if(!USER_CART[k]) return;
+            grid.innerHTML += `
+                <div class="cart-item">
+                    <div>
+                        <div class="cart-cat">${k.toUpperCase()}</div>
+                        <div class="cart-val">${USER_CART[k]}</div>
+                    </div>
+                    <div style="color:var(--accent-go);">✓</div>
+                </div>
+            `;
+        });
+    }
+
+    function sendWhatsapp() {
+        let msg = "MY HARVEY'S ORDER:\n";
+        Object.keys(USER_CART).forEach(k => msg += `- ${k.toUpperCase()}: ${USER_CART[k]}\n`);
+        window.open(`https://wa.me/916351537770?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function goToSlide(idx) {
+        if (idx >= slideElements.length) return;
+
+        const curr = slideElements[currentIdx];
+        curr.classList.remove('active', 'deck-active');
+        curr.classList.add('prev');
+        
+        // Reset layers
+        const deck = curr.querySelector('.carousel-viewport')._deck;
+        if(deck) updateLayers(deck.slides, 0);
+
+        currentIdx = idx;
+        const next = slideElements[currentIdx];
+        
+        slideElements.forEach((s, i) => {
+            s.className = 'main-slide';
+            if(i < idx) s.classList.add('prev');
+            if(i > idx) s.classList.add('next');
+        });
+        next.classList.add('active');
+
+        if(next.id === 'final') updateResult();
+
+        dragRatio = 0;
+        document.getElementById('depth-fill').style.height = '0%';
+    }
+
+    function updateLayers(slides, ratio) {
+        if(!slides[0]) return; 
+
+        // Check if selector mode (no depth layers)
+        if(slides[0].closest('.main-slide').dataset.mode === 'options') return;
+
+        const vis = slides[0];
+        const log = slides[1];
+        const prf = slides[2];
+
+        // Standard Alchemist Physics
+        if (ratio > 0.1) {
+            vis.style.transform = `translateY(${ratio * -80}px) scale(${1 - ratio*0.1})`;
+            vis.style.opacity = Math.max(0, 1 - ratio*3);
+        } else {
+            vis.style.transform = ''; vis.style.opacity = 1;
+        }
+
+        if (log) {
+            if (ratio > 0.25 && ratio < 0.65) {
+                log.style.opacity = Math.min(1, (ratio - 0.25) * 4);
+                log.style.transform = `translateY(${100 - (ratio-0.25)*300}px)`;
+            } else if (ratio > 0.65) {
+                log.style.opacity = Math.max(0, 1 - (ratio - 0.65) * 4);
+                log.style.transform = `translateY(-50px)`;
+            } else {
+                log.style.opacity = 0; log.style.transform = `translateY(100px)`;
+            }
+        }
+
+        if (prf) {
+            if (ratio > 0.55) {
+                prf.style.opacity = Math.min(1, (ratio - 0.55) * 4);
+                prf.style.transform = `translateY(${100 - (ratio-0.55)*300}px)`;
+            } else {
+                prf.style.opacity = 0; prf.style.transform = `translateY(100px)`;
+            }
+        }
+
+        const bar = document.getElementById('depth-fill');
+        bar.style.height = (ratio * 100) + '%';
+        if(ratio < 0.3) bar.style.background = '#333';
+        else if(ratio < 0.6) bar.style.background = '#ff671f';
+        else if(ratio < 0.9) bar.style.background = '#00e676';
+        else bar.style.background = '#fff';
+    }
+
+    /* =========================================
+       TOUCH ENGINE
+       ========================================= */
+    function attachEvents() {
+        let startX = 0, startY = 0;
+
+        document.querySelectorAll('.carousel-viewport').forEach(view => {
+            const slides = Array.from(view.querySelectorAll('.sub-slide'));
+            view._deck = { slides, currOpt: 0 };
+            
+            let isDragging = false;
+            let axis = null;
+
+            view.addEventListener('touchstart', e => {
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                isDragging = true;
+                axis = null;
+            }, {passive: true});
+
+            view.addEventListener('touchmove', e => {
+                if(!isDragging) return;
+                const dx = e.touches[0].clientX - startX;
+                const dy = e.touches[0].clientY - startY;
+
+                if(!axis) axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+
+                const parentSlide = view.closest('.main-slide');
+                const isOptions = parentSlide.dataset.mode === 'options';
+
+                if(isOptions) {
+                    if(axis === 'x') slides.forEach(s => s.style.transform = `translateX(${dx}px)`);
+                    if(axis === 'y' && dy > 0) slides.forEach(s => s.style.transform = `translateY(${dy * 0.3}px)`);
+                    return;
+                }
+
+                if(axis === 'y' && dy > 0) {
+                    e.preventDefault();
+                    dragRatio = Math.min(dy / MAX_DRAG, 1);
+                    updateLayers(view._deck.slides, dragRatio);
+                    parentSlide.classList.add('deck-active');
+                }
+            }, {passive: false});
+
+            view.addEventListener('touchend', e => {
+                if(!isDragging) return;
+                isDragging = false;
+                
+                const dx = e.changedTouches[0].clientX - startX;
+                const dy = e.changedTouches[0].clientY - startY;
+                const parentSlide = view.closest('.main-slide');
+                const isOptions = parentSlide.dataset.mode === 'options';
+
+                // SELECTOR LOGIC (Multi-Option Carousel)
+                if(isOptions) {
+                    const key = view.dataset.key;
+                    const total = parseInt(view.dataset.total);
+                    let curr = view._deck.currOpt;
+
+                    // Horizontal Swipe
+                    if(axis === 'x' && Math.abs(dx) > 50) {
+                        if(dx < 0 && curr < total - 1) curr++; // Next
+                        else if(dx > 0 && curr > 0) curr--;   // Prev
+                        
+                        view._deck.currOpt = curr;
+                        
+                        // Update UI
+                        slides.forEach((s, i) => {
+                            if(i === curr) {
+                                s.classList.remove('opt-hidden');
+                                s.classList.add('opt-active');
+                                // Store selection
+                                USER_CART[key] = s.dataset.val;
+                            } else {
+                                s.classList.remove('opt-active');
+                                s.classList.add('opt-hidden');
+                            }
+                        });
+                    }
+                    
+                    slides.forEach(s => s.style.transform = '');
+
+                    // Vertical Confirm
+                    if(axis === 'y' && dy > 60) {
+                        // Ensure current selection is captured if not swiped
+                        if(!USER_CART[key]) USER_CART[key] = slides[view._deck.currOpt].dataset.val;
+                        goToSlide(currentIdx + 1);
+                    }
+                    return;
+                }
+
+                // STANDARD LOGIC
+                if(axis === 'y') {
+                    if(dragRatio > TRIGGER_THRESHOLD) {
+                        goToSlide(currentIdx + 1);
+                    } else {
+                        parentSlide.classList.remove('deck-active');
+                        updateLayers(view._deck.slides, 0);
+                        document.getElementById('depth-fill').style.height = '0%';
+                    }
+                    dragRatio = 0;
+                }
+                
+                if(axis === 'y' && dy < -50 && currentIdx > 0) {
+                    goToSlide(currentIdx - 1);
+                }
+            });
+        });
+    }
+
+    init(); // BOOT
+
+</script>
+</body>
+</html>
