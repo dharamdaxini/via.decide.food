@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Harvey's Decision Engine | SWIPE-OS v4.9</title>
+    <title>Harvey's Decision Engine | SWIPE-OS v4.11</title>
     <style>
         /* =========================================
            CORE SYSTEM
@@ -95,37 +95,18 @@
             transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease;
         }
 
-        /* Standard Layers */
         .sub-slide.layer-1 { z-index: 30; opacity: 1; pointer-events: auto; }
         .sub-slide.layer-2 { z-index: 20; }
         .sub-slide.layer-3 { z-index: 10; }
-
-        /* Selector Options */
         .sub-slide.opt-active { z-index: 30; opacity: 1; pointer-events: auto; transform: translateX(0); }
         .sub-slide.opt-hidden { z-index: 0; opacity: 0; pointer-events: none; }
 
         h1 { font-size: 1.8rem; margin: 0 0 15px 0; line-height: 1; letter-spacing: -1px; color: var(--brand-orange); }
         .primary-question { font-size: 1.1rem; color: #fff; margin-bottom: 25px; line-height: 1.4; font-weight: 600; }
-        
-        .content-text { 
-            font-size: 0.9rem; 
-            color: #aaa; 
-            line-height: 1.6; 
-            max-height: 40vh;
-            overflow-y: auto;
-        }
+        .content-text { font-size: 0.9rem; color: #aaa; line-height: 1.6; max-height: 40vh; overflow-y: auto; }
 
-        .item-list {
-            list-style: none;
-            padding: 0;
-            margin-top: 10px;
-        }
-        .item-list li {
-            padding: 6px 0;
-            border-bottom: 1px solid #222;
-            font-size: 0.85rem;
-            color: #ccc;
-        }
+        .item-list { list-style: none; padding: 0; margin-top: 10px; }
+        .item-list li { padding: 6px 0; border-bottom: 1px solid #222; font-size: 0.85rem; color: #ccc; }
         .item-list li:before { content: "• "; color: var(--brand-orange); }
 
         .role-label {
@@ -165,35 +146,72 @@
         }
 
         /* =========================================
-           FINAL VERDICT UI
+           VERDICT REDESIGN
            ========================================= */
-        .cart-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px;
-            margin-bottom: 20px;
-            max-height: 50vh;
-            overflow-y: auto;
+        .verdict-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            justify-content: center;
         }
 
-        .cart-item {
+        .choice-header {
+            font-family: var(--font-tech);
+            color: #666;
+            font-size: 0.8rem;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        .input-group {
+            border: 1px solid #333;
             background: #111;
-            border-left: 3px solid var(--brand-orange);
-            padding: 12px;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 40px;
+        }
+
+        .input-row {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            border-bottom: 1px dashed #333;
+            padding: 10px 0;
+            font-family: var(--font-tech);
+            font-size: 0.8rem;
+        }
+        .input-row:last-child { border-bottom: none; }
+        
+        .input-key { color: #888; text-transform: uppercase; }
+        .input-val { color: var(--accent-go); font-weight: bold; text-align: right; }
+
+        .hero-section {
+            text-align: center;
+            margin-bottom: 40px;
         }
 
-        .cart-cat { font-family: var(--font-tech); font-size: 0.6rem; color: #666; }
-        .cart-val { font-size: 0.9rem; font-weight: 700; color: #fff; }
+        .hero-burger {
+            font-size: 3rem;
+            font-weight: 900;
+            line-height: 1;
+            text-transform: uppercase;
+            color: #fff;
+            margin-bottom: 5px;
+            letter-spacing: -2px;
+        }
+        
+        .hero-sub {
+            font-family: var(--font-tech);
+            color: var(--brand-orange);
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+        }
 
         .final-actions {
             display: grid;
             gap: 12px;
-            padding: 0;
             margin-top: auto;
-            margin-bottom: 20px;
         }
         .btn {
             background: #222;
@@ -218,13 +236,12 @@
 </head>
 <body>
 
-<div id="master-container">
-    </div>
+<div id="master-container"></div>
 <div id="depth-fill"></div>
 
 <script>
     /* =========================================
-       CONFIG: HARVEY'S 2026 MENU STRUCTURE
+       CONFIG: HARVEY'S 2026 MENU
        ========================================= */
     const CONFIG = {
       "version": "HARVEYS_MENU_2026_V1",
@@ -358,21 +375,23 @@
             "ascii": "[ SATIETY INDEX ]\nOriginal: [==      ] 2hrs\nAngus   : [======  ] 5hrs"
           }
         },
-        // 7. TIMING
+        // 7. TIMING (CONVERTED TO SELECTOR)
         {
           "id": "timing",
-          "type": "standard",
+          "type": "selector",
           "title": "07 / 12 · TIMING STRATEGY",
-          "visual": {
-            "h1": "THE BOTTLENECK",
-            "q": "When are you visiting?",
-            "txt": "Customization creates a queue bottleneck. Avoid Peak Lunch hours."
-          },
-          "logic": {
-            "txt": "<strong>Queue Theory:</strong> 1 indecisive customer adds 45s to wait time. At 12:00PM, this compounds exponentially."
-          },
-          "proof": {
-            "ascii": "[ PEAK HOURS ]\n(11:30-1:30) -> AVOID\n(3:00-5:00)  -> GO"
+          "key": "timing",
+          "options": {
+            "OFF-PEAK": {
+              "items": ["After 2:00 PM", "Late Night", "Weekdays 3-5 PM"],
+              "note": "Zero Queue. High Accuracy.",
+              "tag": "SMART"
+            },
+            "PEAK": {
+              "items": ["Lunch Rush (11:30-1:30)", "Dinner Rush (5:00-7:00)"],
+              "note": "High Risk. Slow Service.",
+              "tag": "RISKY"
+            }
           }
         },
         // 8. CONSISTENCY
@@ -392,7 +411,7 @@
             "ascii": "[ SCOOP VARIANCE ]\nTarget : 15g\nActual : 10g - 25g\nRisk   : High"
           }
         },
-        // 9. PATTY LOGIC (RECAP)
+        // 9. PATTY LOGIC
         {
           "id": "patty-logic",
           "type": "standard",
@@ -443,7 +462,7 @@
             "ascii": "[ SAVINGS ]\nCoupon : -$4.00\nCAA    : -$1.50\nPoints : -$0.80"
           }
         },
-        // 12. VERDICT
+        // 12. FINAL VERDICT
         {
           "id": "final",
           "type": "final",
@@ -458,9 +477,10 @@
     let USER_CART = {
         burger: 'ORIGINAL',
         chicken: 'CRISPY',
-        poutine: 'CLASSIC',
         side: 'FRINGS',
-        drink: 'SHAKE'
+        drink: 'SHAKE',
+        value: 'JR_BURGERS',
+        timing: 'OFF-PEAK'
     };
 
     const container = document.getElementById('master-container');
@@ -471,9 +491,8 @@
     const TRIGGER_THRESHOLD = 0.9;
 
     function init() {
-        console.log("BOOTING SWIPE-OS v4.9 (EXTENDED)...");
+        console.log("BOOTING SWIPE-OS v4.11...");
         
-        // Build Slides dynamically
         CONFIG.slides.forEach((cfg, idx) => {
             const section = document.createElement('section');
             section.className = `main-slide ${idx === 0 ? 'active' : 'next'}`;
@@ -482,7 +501,6 @@
 
             let content = '';
 
-            // TYPE: SELECTOR (Dynamic Carousel)
             if (cfg.type === 'selector') {
                 let optionsHTML = '';
                 const keys = Object.keys(cfg.options);
@@ -490,7 +508,6 @@
                 keys.forEach((k, kIdx) => {
                     const opt = cfg.options[k];
                     const itemsList = opt.items.map(i => `<li>${i}</li>`).join('');
-                    const opacity = kIdx === 0 ? 1 : 0;
                     const prevText = kIdx > 0 ? `&larr; ${keys[kIdx-1]}` : '';
                     const nextText = kIdx < keys.length - 1 ? `${keys[kIdx+1]} &rarr;` : '';
 
@@ -518,7 +535,6 @@
                     </div>`;
             }
 
-            // TYPE: STANDARD (Alchemist Physics)
             else if (cfg.type === 'standard') {
                 content = `
                     <div class="slide-header"><span class="header-title">${cfg.title}</span></div>
@@ -540,18 +556,23 @@
                     </div>`;
             }
 
-            // TYPE: FINAL
             else if (cfg.type === 'final') {
                 content = `
                     <div class="slide-header"><span class="header-title">${cfg.title}</span></div>
                     <div class="carousel-viewport">
                         <div class="sub-slide layer-1">
-                            <div class="role-label">VERDICT</div>
-                            <div id="final-cart-display" class="cart-grid">
+                            <div class="verdict-container">
+                                <div class="choice-header">YOUR CHOICES</div>
+                                <div class="input-group" id="final-inputs"></div>
+                                <div class="choice-header">PRIMARY SELECTION</div>
+                                <div class="hero-section">
+                                    <div class="hero-burger" id="hero-burger-name">ANGUS</div>
+                                    <div class="hero-sub">FLAME-GRILLED</div>
                                 </div>
-                            <div class="final-actions">
-                                <button class="btn btn-wa" onclick="sendWhatsapp()">SAVE TICKET</button>
-                                <button class="btn" onclick="location.reload()">RESET</button>
+                                <div class="final-actions">
+                                    <button class="btn btn-wa" onclick="sendWhatsapp()">SAVE TICKET</button>
+                                    <button class="btn" onclick="location.reload()">RESET</button>
+                                </div>
                             </div>
                         </div>
                     </div>`;
@@ -569,21 +590,25 @@
        LOGIC ENGINE
        ========================================= */
     function updateResult() {
-        const grid = document.getElementById('final-cart-display');
-        grid.innerHTML = '';
+        const container = document.getElementById('final-inputs');
+        const burgerName = document.getElementById('hero-burger-name');
         
-        Object.keys(USER_CART).forEach(k => {
-            if(!USER_CART[k]) return;
-            grid.innerHTML += `
-                <div class="cart-item">
-                    <div>
-                        <div class="cart-cat">${k.toUpperCase()}</div>
-                        <div class="cart-val">${USER_CART[k]}</div>
-                    </div>
-                    <div style="color:var(--accent-go);">✓</div>
-                </div>
-            `;
+        burgerName.innerText = USER_CART.burger;
+
+        let html = '';
+        // Added 'timing' to the key list
+        const keys = ['chicken', 'side', 'drink', 'timing', 'value']; 
+        
+        keys.forEach(k => {
+            if(USER_CART[k]) {
+                html += `
+                <div class="input-row">
+                    <span class="input-key">${k.toUpperCase()}</span>
+                    <span class="input-val">${USER_CART[k]}</span>
+                </div>`;
+            }
         });
+        container.innerHTML = html;
     }
 
     function sendWhatsapp() {
@@ -593,24 +618,27 @@
     }
 
     function goToSlide(idx) {
-        if (idx >= slideElements.length) return;
+        if (idx < 0 || idx >= slideElements.length) return;
 
         const curr = slideElements[currentIdx];
         curr.classList.remove('active', 'deck-active');
-        curr.classList.add('prev');
+        // If going forward, current becomes prev. If backward, current becomes next.
+        if (idx > currentIdx) {
+            curr.classList.add('prev');
+            curr.classList.remove('next');
+        } else {
+            curr.classList.add('next');
+            curr.classList.remove('prev');
+        }
         
-        // Reset layers
         const deck = curr.querySelector('.carousel-viewport')._deck;
-        if(deck) updateLayers(deck.slides, 0);
+        if(deck && deck.slides) updateLayers(deck.slides, 0);
 
         currentIdx = idx;
         const next = slideElements[currentIdx];
         
-        slideElements.forEach((s, i) => {
-            s.className = 'main-slide';
-            if(i < idx) s.classList.add('prev');
-            if(i > idx) s.classList.add('next');
-        });
+        // Ensure proper stack order for new slide
+        next.classList.remove('prev', 'next');
         next.classList.add('active');
 
         if(next.id === 'final') updateResult();
@@ -621,15 +649,12 @@
 
     function updateLayers(slides, ratio) {
         if(!slides[0]) return; 
-
-        // Check if selector mode (no depth layers)
         if(slides[0].closest('.main-slide').dataset.mode === 'options') return;
 
         const vis = slides[0];
         const log = slides[1];
         const prf = slides[2];
 
-        // Standard Alchemist Physics
         if (ratio > 0.1) {
             vis.style.transform = `translateY(${ratio * -80}px) scale(${1 - ratio*0.1})`;
             vis.style.opacity = Math.max(0, 1 - ratio*3);
@@ -696,6 +721,12 @@
                 const parentSlide = view.closest('.main-slide');
                 const isOptions = parentSlide.dataset.mode === 'options';
 
+                // Prevent swipe UP action during drag unless purely vertical
+                if(axis === 'y' && dy < 0) {
+                    // Logic handled in touchend
+                    return; 
+                }
+
                 if(isOptions) {
                     if(axis === 'x') slides.forEach(s => s.style.transform = `translateX(${dx}px)`);
                     if(axis === 'y' && dy > 0) slides.forEach(s => s.style.transform = `translateY(${dy * 0.3}px)`);
@@ -719,25 +750,30 @@
                 const parentSlide = view.closest('.main-slide');
                 const isOptions = parentSlide.dataset.mode === 'options';
 
-                // SELECTOR LOGIC (Multi-Option Carousel)
+                // GLOBAL SWIPE UP (BACK)
+                if (axis === 'y' && dy < -60) {
+                    if (currentIdx > 0) {
+                        goToSlide(currentIdx - 1);
+                        return; // Exit handler
+                    }
+                }
+
+                // SELECTOR LOGIC
                 if(isOptions) {
                     const key = view.dataset.key;
                     const total = parseInt(view.dataset.total);
                     let curr = view._deck.currOpt;
 
-                    // Horizontal Swipe
                     if(axis === 'x' && Math.abs(dx) > 50) {
-                        if(dx < 0 && curr < total - 1) curr++; // Next
-                        else if(dx > 0 && curr > 0) curr--;   // Prev
+                        if(dx < 0 && curr < total - 1) curr++; 
+                        else if(dx > 0 && curr > 0) curr--;   
                         
                         view._deck.currOpt = curr;
                         
-                        // Update UI
                         slides.forEach((s, i) => {
                             if(i === curr) {
                                 s.classList.remove('opt-hidden');
                                 s.classList.add('opt-active');
-                                // Store selection
                                 USER_CART[key] = s.dataset.val;
                             } else {
                                 s.classList.remove('opt-active');
@@ -748,9 +784,8 @@
                     
                     slides.forEach(s => s.style.transform = '');
 
-                    // Vertical Confirm
+                    // Confirm Selection (Down)
                     if(axis === 'y' && dy > 60) {
-                        // Ensure current selection is captured if not swiped
                         if(!USER_CART[key]) USER_CART[key] = slides[view._deck.currOpt].dataset.val;
                         goToSlide(currentIdx + 1);
                     }
@@ -758,7 +793,7 @@
                 }
 
                 // STANDARD LOGIC
-                if(axis === 'y') {
+                if(axis === 'y' && dy > 0) {
                     if(dragRatio > TRIGGER_THRESHOLD) {
                         goToSlide(currentIdx + 1);
                     } else {
@@ -767,10 +802,6 @@
                         document.getElementById('depth-fill').style.height = '0%';
                     }
                     dragRatio = 0;
-                }
-                
-                if(axis === 'y' && dy < -50 && currentIdx > 0) {
-                    goToSlide(currentIdx - 1);
                 }
             });
         });
