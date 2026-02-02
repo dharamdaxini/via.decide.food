@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -181,7 +180,7 @@
             height: 0%; transition: height 0.05s linear, background 0.3s;
         }
 
-        /* Toast for copy feedback */
+        /* Toast for feedback */
         .toast-msg {
             position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%);
             background: #222; color: #00e676; padding: 12px 24px;
@@ -208,23 +207,44 @@
     // Helper to generate clean order text from USER_CART
     function getOrderText() {
         let items = [];
-        if (USER_CART.burger) items.push(USER_CART.burger + " Burger");
+        // Map user cart to readable string
+        if (USER_CART.burger) items.push(USER_CART.burger);
         if (USER_CART.chicken) items.push(USER_CART.chicken);
         if (USER_CART.side) items.push(USER_CART.side);
         if (USER_CART.value) items.push(USER_CART.value);
         if (USER_CART.drink) items.push(USER_CART.drink);
         
-        return items.length > 0 ? items.join(", ") : "Punjabi Food";
+        // If empty, return generic
+        if (items.length === 0) return "Punjabi Food";
+
+        return `ORDER:\n${items.join("\n")}`;
     }
 
     // Helper to copy text to clipboard
     function copyToClipboard(text) {
         if (!navigator.clipboard) return;
         navigator.clipboard.writeText(text).then(() => {
-            showToast("ORDER COPIED! PASTE IN APP");
+            // Show custom paste hint (PATCH 3)
+            showPasteHint();
         }).catch(err => {
             console.error('Failed to copy: ', err);
         });
+    }
+
+    // PATCH 3: Custom Paste Hint Overlay
+    function showPasteHint() {
+        const hint = document.createElement('div');
+        hint.innerHTML = `
+            <div style="
+              position:fixed; bottom:80px; left:50%; transform:translateX(-50%);
+              background:#000; color:#fff; padding:12px 20px; border-radius:30px;
+              font-size:0.8rem; z-index:9999; border:1px solid #00e676; 
+              box-shadow: 0 4px 15px rgba(0,0,0,0.8); text-align:center; font-family:sans-serif;">
+              ✅ ORDER COPIED<br><span style="color:#00e676; font-size:0.75rem;">PASTE IN APP SEARCH BAR</span>
+            </div>
+        `;
+        document.body.appendChild(hint);
+        setTimeout(() => hint.remove(), 3500);
     }
 
     const PLATFORM_LINKS = {
@@ -243,11 +263,11 @@
     };
 
     function openPlatform(platform) {
-      // 1. Get current cart text
-      const orderQuery = getOrderText();
+      // 1. Get current cart text (just the items for search)
+      const orderQuery = getOrderText().replace("ORDER:\n", "").replace(/\n/g, " "); 
       
-      // 2. Copy to Clipboard FIRST
-      copyToClipboard(orderQuery);
+      // 2. Copy the FULL list to Clipboard FIRST (PATCH 2)
+      copyToClipboard(getOrderText());
 
       // 3. Prepare Deep Link
       const links = PLATFORM_LINKS[platform];
@@ -258,6 +278,7 @@
       // 4. Delay redirection slightly so Toast is seen
       setTimeout(() => {
           const start = Date.now();
+          // Try to open App
           window.location.href = links.app(orderQuery);
 
           // 5. Fallback to Web if App fails
@@ -407,7 +428,7 @@
                     if (act.action === 'blinkit') { onclick = `openPlatform('blinkit')`; btnClass += ' btn-blinkit'; }
                     
                     if (act.action === 'whatsapp') {
-                        onclick = `sendWhatsappTicket()`; // Use dedicated function
+                        onclick = `sendWhatsappTicket()`; // Use dedicated function (PATCH 4)
                         btnClass += ' btn-wa';
                     }
                     if (act.action === 'b2b') {
@@ -451,7 +472,7 @@
     }
 
     function sendWhatsappTicket() {
-        // Construct clean message
+        // Construct clean message from USER_CART
         let items = "";
         const keys = Object.keys(USER_CART);
         
@@ -459,6 +480,7 @@
             items = "No specific items selected.";
         } else {
             keys.forEach(k => {
+                // Formatting for WhatsApp readability
                 items += `- ${k.toUpperCase()}: ${USER_CART[k]}\n`;
             });
         }
