@@ -1,695 +1,958 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="manifest" href="manifest.json">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Alchemist | Kinetic v147.6 PATCHED</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Harvey's Decision Engine | SWIPE-OS v6.1 (Stable Core)</title>
+    <style>
+        /* =========================================
+           CORE SYSTEM (UNCHANGED)
+           ========================================= */
+        :root {
+            --brand-orange: #ff671f;
+            --brand-bg: #0a0a0a;
+            --text-main: #f0f0f0;
+            --accent-go: #00e676; 
+            --font-tech: 'Courier New', monospace;
+            --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
 
-<link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        html, body {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            background-color: var(--brand-bg);
+            color: var(--text-main);
+            font-family: var(--font-ui);
+            overflow: hidden;
+        }
 
-<style>
-/* KINETIC VISUAL CORE */
-:root{ --bg:#000000; --card:#0a0a0a; --border:#222; --gold:#ffd600; --green:#2ecc71; --red:#ff4444; --text-white:#ffffff; --text-grey:#888888; --font-serif:'Crimson Text',serif; --font-sans:'Inter',sans-serif; --font-code:'JetBrains Mono',monospace; }
-*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-body{margin:0; height:100vh; background:var(--bg); color:var(--text-white); font-family:var(--font-sans); overflow:hidden; display:flex; flex-direction:column;}
+        #master-container {
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+            overflow: hidden;
+        }
 
-/* HEADER & LOGS */
-#header{width:90%; margin:25px auto 0; z-index:100; flex-shrink:0;}
-.header-meta{display:flex; justify-content:space-between; font-family:var(--font-code); font-size:0.75rem; color:#666; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:15px;}
-.progress-track{width:100%; height:3px; background:#222; border-radius:2px;}
-#progress-bar{height:100%; background:var(--gold); width:0%; transition:width 0.4s ease; border-radius:2px;}
+        .main-slide {
+            height: 100vh;
+            width: 100vw;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            background: var(--brand-bg);
+            transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+            will-change: transform;
+        }
 
-#kinetic-logger{width:90%; margin:15px auto 5px; font-family:var(--font-code); font-size:0.8rem; color:#444; line-height:1.4; text-transform:uppercase; min-height:60px; display:flex; flex-direction:column; justify-content:flex-end;}
-.log-line{opacity:0.5; transition:opacity 0.2s;} 
-.log-line.active{color:var(--green); opacity:1; font-weight:700;} 
-.log-line.primary{color:var(--gold); opacity:1; font-weight:700;}
-.log-line.danger{color:var(--red); opacity:1; font-weight:700;}
+        .main-slide.prev { transform: translateY(-100%); }
+        .main-slide.active { transform: translateY(0); z-index: 10; }
+        .main-slide.next { transform: translateY(100%); z-index: 20; }
 
-/* SENSOR STATUS PILL */
-#gyro-status { 
-    position: absolute; top: 20px; left: 50%; transform: translateX(-50%); 
-    font-family: var(--font-code); font-size: 0.6rem; color: #444; 
-    border: 1px solid #333; padding: 4px 8px; border-radius: 4px; 
-    opacity: 0; transition: opacity 0.5s; pointer-events: none;
-}
-#gyro-status.active { opacity: 1; color: var(--gold); border-color: var(--gold); }
+        .slide-header {
+            padding: 20px;
+            border-left: 3px solid var(--brand-orange);
+            height: 70px;
+            flex-shrink: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            transition: opacity 0.3s;
+        }
+        
+        .main-slide.deck-active .slide-header { opacity: 0.2; }
+        .main-slide.deck-active { background: #000; }
 
-/* RE-CENTERING HINT */
-#center-hint { display: none; } 
+        .header-title {
+            font-family: var(--font-tech);
+            font-size: 0.75rem;
+            color: var(--brand-orange);
+            letter-spacing: 1px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
 
-/* PHYSICS STACK */
-#stack{position:relative; width:90%; max-width:420px; height:calc(100vh - 220px - env(safe-area-inset-bottom)); margin:10px auto 20px; perspective:1500px; display:flex; align-items:center; justify-content:center;}
-.card{
-    position:absolute; width:100%; height:100%; background:var(--card); 
-    border-radius:14px; border:1px solid var(--border); padding:35px; 
-    display:flex; flex-direction:column; justify-content:center; align-items:center; 
-    box-shadow:0 20px 60px rgba(0,0,0,0.95); 
-    will-change: transform; 
-    transform-style:preserve-3d; overflow:hidden;
-}
+        /* =========================================
+           CONTENT DECK
+           ========================================= */
+        .carousel-viewport {
+            position: relative;
+            flex-grow: 1;
+            width: 100%;
+            touch-action: none;
+        }
 
-/* LOCKED STATE */
-.card.locked { opacity: 0.2; transform: scale(0.96); transition: opacity 0.3s, transform 0.3s; filter: grayscale(100%); }
+        .sub-slide {
+            position: absolute;
+            inset: 0;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(0) scale(1);
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease;
+        }
 
-.card-q{
-    font-family:var(--font-serif); font-size:clamp(1.4rem, 5vw, 1.9rem); line-height:1.4; font-weight:600; 
-    text-align:center; color:var(--text-white); width:100%; max-height:100%; overflow-y:auto; 
-    word-wrap:break-word; padding:0 5px; display:flex; flex-direction:column; justify-content:center;
-    transition: transform 0.1s ease-out; /* Parallax */
-}
-.card-q::-webkit-scrollbar{width:0px;} 
-.card-q sub{font-size:0.7em; vertical-align:-0.3em;} .card-q sup{font-size:0.7em; vertical-align:0.5em;}
+        .sub-slide.layer-1 { z-index: 30; opacity: 1; pointer-events: auto; }
+        .sub-slide.layer-2 { z-index: 20; }
+        .sub-slide.layer-3 { z-index: 10; }
+        .sub-slide.opt-active { z-index: 30; opacity: 1; pointer-events: auto; transform: translateX(0); }
+        .sub-slide.opt-hidden { z-index: 0; opacity: 0; pointer-events: none; }
 
-/* SWIPE LABELS */
-.swipe-label{
-    position:absolute; inset:0; display:flex; align-items:center; justify-content:center; 
-    background:rgba(0,0,0,0.85); font-family:var(--font-sans); font-weight:900; 
-    font-size:1.6rem; text-transform:uppercase; letter-spacing:1px; text-align:center; 
-    padding:40px; opacity:0; pointer-events:none; transition:opacity 0.1s ease, transform 0.1s ease; 
-    border-radius:14px; color:var(--text-white); border:1px solid #444;
-    transform: scale(0.9);
-}
-</style>
+        h1 { font-size: 1.8rem; margin: 0 0 15px 0; line-height: 1; letter-spacing: -1px; color: var(--brand-orange); }
+        .primary-question { font-size: 1.1rem; color: #fff; margin-bottom: 25px; line-height: 1.4; font-weight: 600; }
+        .content-text { font-size: 0.9rem; color: #aaa; line-height: 1.6; max-height: 40vh; overflow-y: auto; }
+
+        .item-list { list-style: none; padding: 0; margin-top: 10px; }
+        .item-list li { padding: 6px 0; border-bottom: 1px solid #222; font-size: 0.85rem; color: #ccc; }
+        .item-list li:before { content: "• "; color: var(--brand-orange); }
+
+        .role-label {
+            font-family: var(--font-tech);
+            font-size: 0.6rem;
+            color: #000;
+            background: var(--accent-go);
+            padding: 4px 8px;
+            border-radius: 4px;
+            width: fit-content;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .nav-hint {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+            font-family: var(--font-tech);
+            font-size: 0.7rem;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .ascii-box {
+            background: #080808;
+            border: 1px solid #333;
+            color: var(--accent-go);
+            font-family: var(--font-tech);
+            font-size: 0.75rem;
+            padding: 15px;
+            border-radius: 6px;
+            white-space: pre;
+            line-height: 1.2;
+            margin-top: 20px;
+        }
+
+        /* =========================================
+           VERDICT REDESIGN
+           ========================================= */
+        .verdict-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            justify-content: center;
+        }
+
+        .choice-header {
+            font-family: var(--font-tech);
+            color: #666;
+            font-size: 0.8rem;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        .input-group {
+            border: 1px solid #333;
+            background: #111;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 40px;
+            min-height: 100px;
+        }
+
+        .input-row {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px dashed #333;
+            padding: 10px 0;
+            font-family: var(--font-tech);
+            font-size: 0.8rem;
+            animation: fadeInRow 0.3s ease;
+        }
+        @keyframes fadeInRow { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+        
+        .input-row:last-child { border-bottom: none; }
+        
+        .input-key { color: #888; text-transform: uppercase; }
+        .input-val { color: var(--accent-go); font-weight: bold; text-align: right; }
+
+        .hero-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .hero-burger {
+            font-size: 3rem;
+            font-weight: 900;
+            line-height: 1;
+            text-transform: uppercase;
+            color: #fff;
+            margin-bottom: 5px;
+            letter-spacing: -2px;
+        }
+        
+        .hero-sub {
+            font-family: var(--font-tech);
+            color: var(--brand-orange);
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+        }
+
+        .brand-logo-placeholder {
+            width: 80px;
+            height: 80px;
+            background: #222;
+            border-radius: 50%;
+            margin: 0 auto 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--brand-orange);
+            color: var(--brand-orange);
+            font-weight: 900;
+            font-size: 1.5rem;
+        }
+
+        .final-actions {
+            display: grid;
+            gap: 12px;
+            margin-top: auto;
+        }
+        .btn {
+            background: #222;
+            color: #fff;
+            border: 1px solid #333;
+            padding: 18px;
+            width: 100%;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-wa { background: #25D366; color: #000; border: none; }
+        .btn-support { background: transparent; border: 1px solid #444; color: #888; }
+        .btn-share { background: var(--brand-orange); color: #fff; border: none; }
+        .btn-insta { 
+            background: linear-gradient(45deg, #405de6, #5851db, #833ab4, #c13584, #e1306c, #fd1d1d);
+            color: white; border: none;
+        }
+
+        #depth-fill {
+            position: fixed; right: 0; top: 0; bottom: 0; width: 4px;
+            background: #333; z-index: 900;
+            height: 0%; transition: height 0.05s linear, background 0.3s;
+        }
+
+        /* Toast for copy feedback */
+        .toast-msg {
+            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+            background: #222; color: #00e676; padding: 12px 24px;
+            border: 1px solid #00e676;
+            border-radius: 30px; font-size: 0.8rem; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s; z-index: 2500; font-family: var(--font-tech);
+            white-space: nowrap;
+        }
+        .toast-msg.visible { opacity: 1; }
+
+        /* =========================================
+           LISTEN MODE UI
+           ========================================= */
+        #mic-toggle {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 60px;
+            height: 60px;
+            background: #111;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #444;
+            z-index: 2000;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        #mic-toggle svg { width: 28px; height: 28px; fill: #666; transition: fill 0.3s; }
+        
+        #mic-toggle.listening {
+            border-color: var(--accent-go);
+            background: rgba(0, 230, 118, 0.15);
+            animation: pulse-mic 1.5s infinite;
+        }
+        #mic-toggle.listening svg { fill: var(--accent-go); }
+
+        @keyframes pulse-mic {
+            0% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(0, 230, 118, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
+        }
+
+        #voice-feedback {
+            position: fixed;
+            bottom: 30px;
+            left: 90px;
+            font-family: var(--font-tech);
+            font-size: 0.8rem;
+            color: #fff;
+            background: rgba(0,0,0,0.7);
+            padding: 8px 12px;
+            border-radius: 4px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 2000;
+            border-left: 2px solid var(--accent-go);
+        }
+        #voice-feedback.visible { opacity: 1; }
+
+        /* B2B Typography */
+        .b2b-highlight {
+            font-size: 2.5rem;
+            line-height: 1.2;
+            color: #fff;
+            font-weight: 300;
+            margin: 20px 0;
+        }
+        .b2b-bold {
+            color: var(--brand-orange);
+            font-weight: 900;
+            letter-spacing: 2px;
+            display: block;
+            font-size: 3rem;
+        }
+
+    </style>
 </head>
 <body>
 
-<div id="gyro-status">HYBRID SENSORS READY</div>
+<div id="master-container"></div>
+<div id="depth-fill"></div>
+<div id="toast" class="toast-msg">ACTION CONFIRMED</div>
 
-<div id="header">
-  <div class="header-meta">
-    <span id="id-ui">VIA.STACK</span> 
-    <span id="xp-ui">0 XP</span>
-  </div>
-  <div class="progress-track"><div id="progress-bar"></div></div>
+<div id="mic-toggle" onclick="toggleListenMode()">
+    <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
 </div>
-
-<div id="kinetic-logger">
-  <div class="log-line" id="log-1">> SYSTEM BOOT</div>
-  <div class="log-line" id="log-2">> APPLYING PATCHES...</div>
-  <div class="log-line active" id="log-3">> ...</div>
-</div>
-
-<div id="stack">
-  <div class="card">
-    <div class="card-q" style="font-family:var(--font-code); font-size:0.9rem; color:#666; font-style:normal;">LOADING PATCHED CORE...</div>
-  </div>
-</div>
+<div id="voice-feedback">LISTENING...</div>
 
 <script>
-/* =========================================
-   VIA.STACK | KINETIC v147.6 PATCHED
-   ========================================= */
+    /* =========================================
+       0. SYSTEM STATE (PATCH 1 - CRASH FIXES)
+       ========================================= */
+    let SES_BEACON_SENT = false; // Fix: Undefined state crash
+    let SENSORS_ENABLED = false;
+    let CURRENT_SES_ID = 'HARV-' + Math.floor(Math.random() * 10000);
 
-// --- CONFIGURATION ---
-const BEACON_URL = "https://script.google.com/macros/s/AKfycbzSxk_so64KtqwpvzvJSyTv2JydsD91BJEyl5jIKlzDopXRW-DOSoXbutfIARSDEiFE/exec"; 
-const WA_NUMBER = "916351537770"; 
-const MASTER_KEY = "ALCHEMIST_MASTER_V1"; 
+    /* =========================================
+       CONFIG: HARVEY'S 2026 MENU
+       ========================================= */
+    const CONFIG = {
+      "version": "HARVEYS_MENU_2026_V1",
+      "slides": [
+        {
+          "id": "burger", "type": "selector", "title": "01 / 14 · BURGERS", "key": "burger",
+          "options": {
+            "ORIGINAL": { "items": ["Original Burger"], "tag": "NOSTALGIA", "voice": ["original", "classic", "standard"] },
+            "ANGUS": { "items": ["Angus Burger"], "tag": "QUALITY", "voice": ["angus", "premium", "beef", "steak"] },
+            "VEGGIE": { "items": ["Veggie Burger"], "tag": "PLANT", "voice": ["veggie", "plant", "vegetarian"] }
+          }
+        },
+        {
+          "id": "chicken", "type": "selector", "title": "02 / 14 · CHICKEN", "key": "chicken",
+          "options": {
+            "CRISPY": { "items": ["Crispy Sandwich"], "tag": "TEXTURE", "voice": ["crispy", "fried chicken"] },
+            "GRILLED": { "items": ["Grilled Sandwich"], "tag": "HEALTH", "voice": ["grilled", "healthy"] },
+            "BUFFALO": { "items": ["Buffalo Sandwich"], "tag": "SPICY", "voice": ["buffalo", "spicy"] }
+          }
+        },
+        {
+          "id": "sides", "type": "selector", "title": "03 / 14 · SIDES", "key": "side",
+          "options": {
+            "POUTINE": { "items": ["Classic Poutine"], "tag": "COMFORT", "voice": ["poutine", "gravy"] },
+            "SIDES": { "items": ["Frings"], "tag": "CLASSIC", "voice": ["sides", "fries", "rings", "frings", "pickles"] }
+          }
+        },
+        {
+          "id": "value", "type": "selector", "title": "04 / 14 · VALUE", "key": "value",
+          "options": {
+            "JR_BURGERS": { "items": ["Jr. Burger"], "tag": "BUDGET", "voice": ["junior", "jr burger"] },
+            "SNACKS": { "items": ["Nuggets"], "tag": "QUICK", "voice": ["nuggets", "bites", "chicken bits"] },
+            "DESSERTS": { "items": ["Donuts"], "tag": "SWEET", "voice": ["dessert", "donut", "pie", "apple pie", "sweet"] }
+          }
+        },
+        {
+          "id": "drinks", "type": "selector", "title": "05 / 14 · DRINKS", "key": "drink",
+          "options": {
+            "SHAKES": { "items": ["Chocolate Shake"], "tag": "DESSERT", "voice": ["shake", "milkshake", "chocolate", "vanilla", "strawberry"] },
+            "FROZEN": { "items": ["Slushie"], "tag": "ENERGY", "voice": ["frozen", "slushie", "red bull", "slush"] },
+            "STANDARD": { "items": ["Pepsi"], "tag": "BASIC", "voice": ["drink", "soda", "pop", "coke", "pepsi", "coffee", "tea"] }
+          }
+        },
+        { "id": "final", "type": "final", "title": "06 / 14 · ORDER TICKET" },
+        // Logic Slides
+        { "id": "hunger", "type": "standard", "title": "07 / 14 · HUNGER", "visual": { "h1": "HOW HUNGRY?", "q": "Calibrating protein.", "txt": "High hunger favors Angus." }, "logic": { "txt": "Angus is 100% beef." }, "proof": { "ascii": "[ SATIETY ]" } },
+        { "id": "timing", "type": "selector", "title": "08 / 14 · TIMING", "key": "timing", "options": { "OFF-PEAK": { "items": ["After 2PM"], "tag": "SMART", "voice": ["off peak", "quiet", "late"] }, "PEAK": { "items": ["Lunch Rush"], "tag": "RISKY", "voice": ["peak", "rush", "busy"] } } },
+        { "id": "consistency", "type": "standard", "title": "09 / 14 · CONSISTENCY", "visual": { "h1": "EXECUTION RISK", "q": "Tolerate variance?", "txt": "Depends on staff." }, "logic": { "txt": "Human scooping has variance." }, "proof": { "ascii": "[ VARIANCE ]" } },
+        { "id": "patty-logic", "type": "standard", "title": "10 / 14 · PATTY LOGIC", "visual": { "h1": "TEXTURE", "q": "Mouthfeel?", "txt": "Original is softer." }, "logic": { "txt": "Angus holds toppings better." }, "proof": { "ascii": "[ DENSITY ]" } },
+        { "id": "method", "type": "standard", "title": "11 / 14 · THE RITUAL", "visual": { "h1": "GARNISH CONTROL", "q": "Why Harvey’s?", "txt": "Live assembly." }, "logic": { "txt": "Open counters force accountability." }, "proof": { "ascii": "[ ERRORS ]" } },
+        { "id": "value-stack", "type": "standard", "title": "12 / 14 · STACKING", "visual": { "h1": "MINIMIZE SPEND", "q": "Don't pay full price.", "txt": "Use Coupons." }, "logic": { "txt": "Coupon > CAA > Points." }, "proof": { "ascii": "[ SAVINGS ]" } },
+        // End Card
+        { "id": "brand-end", "type": "brand", "title": "13 / 14 · NATIONAL CHAMPION" },
+        // B2B Card
+        { "id": "b2b", "type": "contact", "title": "14 / 14 · BUSINESS INQUIRY" }
+      ]
+    };
 
-// --- SPHERICAL PHYSICS CONFIG ---
-const BALL_WEIGHT = 0.08;
-const SPHERE_RADIUS_PX = 1000; 
-const HOVER_ANGLE_DEG = 10; 
-const CLICK_ANGLE_DEG = 15; 
-const UNLOCK_ANGLE_DEG = 2.0;
+    /* =========================================
+       STATE & BUILDER
+       ========================================= */
+    let USER_CART = {}; // START EMPTY
 
-let SENSORS_ENABLED = false;
+    const container = document.getElementById('master-container');
+    let slideElements = [];
+    let currentIdx = 0;
+    let dragRatio = 0;
+    const MAX_DRAG = 300; 
+    const TRIGGER_THRESHOLD = 0.9;
 
-// --- STATIC DATA ---
-const INJECTED_DATA = [
-  { "id": "001", "set": "SET_A", "dom": "Physical Chemistry", "topic": "Solutions", "q": "According to Henrys Law what is the mathematical relationship between the partial pressure p of a gas and its mole fraction chi in the solution", "u": "p equals K H times chi", "l": "p equals K H divided by chi", "r": "p equals chi divided by K H", "correct": "UP", "logic": "Henrys Law states that at a constant temperature, the solubility of a gas in a liquid is directly proportional to the partial pressure of that gas. The modern equation is p equals K H times chi, where K H is Henrys Law constant.", "hint": "Pressure is the product of Henrys constant and mole fraction.", "ref": "NCERT Chemistry Class 12", "link": "https://ncert.nic.in/textbook.php", "trap": "Inverting the relationship or dividing by the constant.", "s1": "Identify the variables pressure and mole fraction.", "s2": "Recall the linear proportionality constant K H.", "status": "VERIFIED" },
-  { "id": "002", "set": "SET_AA", "dom": "Physical Chemistry", "topic": "Solutions", "q": "Why does the solubility of gases in liquids generally decrease with an increase in temperature", "u": "Dissolution is an exothermic process", "l": "Dissolution is an endothermic process", "r": "Gases become less dense at high temperatures", "correct": "UP", "logic": "Dissolving a gas in a liquid is essentially a condensation process, which is exothermic (Delta H sol is negative). According to Le Chateliers Principle, increasing temperature shifts the equilibrium backward favor of the gas phase, reducing solubility.", "hint": "Exothermic dissolution implies heat hinders solubility.", "ref": "NCERT Chemistry Class 12", "link": "https://chem.libretexts.org/Bookshelves/Physical_and_Theoretical_Chemistry_Textbook_Maps/Physical_Chemistry_(LibreTexts", "trap": "Confusing gas solubility with solid solubility (which is often endothermic).", "s1": "Classify gas dissolution as exothermic or endothermic.", "s2": "Apply Le Chateliers Principle to the temperature change.", "status": "VERIFIED" },
-  { "id": "023", "set": "SET_A", "dom": "Physical Chemistry", "topic": "Electrochemistry", "q": "What happens to the lead sulfate PbSO4 at the electrodes during the recharging of a lead acid battery", "u": "It converts back to Pb and PbO2", "l": "It dissolves into the electrolyte", "r": "It oxidizes to PbO", "correct": "UP", "logic": "During recharge, the cell operates as an electrolytic cell. The solid Lead Sulfate (PbSO4) on the electrodes is converted back into Lead (Pb) at the anode and Lead Dioxide (PbO2) at the cathode, regenerating the active materials.", "hint": "PbSO4 reverts to original electrode materials.", "ref": "NCERT Chemistry Class 12", "link": "https://ncert.nic.in/textbook.php", "trap": "Thinking it remains as sulfate.", "s1": "Identify the mode of operation (Electrolytic).", "s2": "Trace the reverse reaction of the discharge products.", "status": "VERIFIED" }
-];
+    function init() {
+        console.log("BOOTING SWIPE-OS v6.1...");
+        
+        CONFIG.slides.forEach((cfg, idx) => {
+            const section = document.createElement('section');
+            section.className = `main-slide ${idx === 0 ? 'active' : 'next'}`;
+            section.id = cfg.id;
+            section.dataset.mode = cfg.type === 'selector' ? 'options' : 'standard';
 
-// --- STATE (PATCH 1: BEACON FIX) ---
-let RAW_DATA = [], POOL = [], WRONG = [], SESSION_ALL = [];
-let SET_CURSOR = 0, ACTIVE_SET = null, XP = 0, VOLUME_LIMIT = null;
-let ATTEMPTED = new Set(); 
-let SES_BEACON_SENT = false; // <-- PATCH 1
+            let content = '';
 
-// --- TELEMETRY ---
-let Q_START_TIME = 0;
-let SESSION_LOG = []; 
-let PIVOT_COUNT = 0;
+            if (cfg.type === 'selector') {
+                let optionsHTML = '';
+                const keys = Object.keys(cfg.options);
+                
+                keys.forEach((k, kIdx) => {
+                    const opt = cfg.options[k];
+                    const itemsList = opt.items.map(i => `<li>${i}</li>`).join('');
+                    const prevText = kIdx > 0 ? `&larr; ${keys[kIdx-1]}` : '';
+                    const nextText = kIdx < keys.length - 1 ? `${keys[kIdx+1]} &rarr;` : '';
 
-// --- BACKEND ---
-let USER_MOBILE = localStorage.getItem("USER_MOBILE") || null;
-let CURRENT_SES_ID = null;
-let CREDITS = parseInt(localStorage.getItem("USER_CREDITS") || "10");
-let VAULT = [];
-try { VAULT = JSON.parse(localStorage.getItem("USER_VAULT") || "[]"); } catch(e) { VAULT = []; }
+                    optionsHTML += `
+                        <div class="sub-slide ${kIdx===0 ? 'opt-active' : 'opt-hidden'}" data-opt-idx="${kIdx}" data-val="${k}">
+                            <div class="role-label">${opt.tag}</div>
+                            <h1>${k}</h1>
+                            <div class="primary-question">${opt.note || 'Select Option'}</div>
+                            <div class="content-text">
+                                <ul class="item-list">${itemsList}</ul>
+                            </div>
+                            <div class="nav-hint">
+                                <span style="flex:1; text-align:left;">${prevText}</span>
+                                <span style="flex:2; text-align:center; color:#fff; font-weight:bold;">&darr; PULL TO SELECT &darr;</span>
+                                <span style="flex:1; text-align:right;">${nextText}</span>
+                            </div>
+                        </div>
+                    `;
+                });
 
-/* ================= UTILS ================= */
-function log(msg, type="normal") {
-    const l1 = document.getElementById("log-1"), l2 = document.getElementById("log-2"), l3 = document.getElementById("log-3");
-    l1.innerText = l2.innerText; l1.className = l2.className;
-    l2.innerText = l3.innerText; l2.className = "log-line"; 
-    l3.innerText = `> ${msg}`;
-    l3.className = type === "active" ? "log-line active" : type === "primary" ? "log-line primary" : type === "danger" ? "log-line danger" : "log-line";
-}
+                content = `
+                    <div class="slide-header"><span class="header-title">${cfg.title}</span></div>
+                    <div class="carousel-viewport" data-key="${cfg.key}" data-total="${keys.length}">
+                        ${optionsHTML}
+                    </div>`;
+            }
 
-/* ================= HYBRID PHYSICS ENGINE ================= */
-const chemText = t => String(t||"").replace(/_(\d+)/g,"<sub>$1</sub>").replace(/\^([0-9+\-]+)/g,"<sup>$1</sup>").replace(/<->|↔/g,"⇌");
+            else if (cfg.type === 'standard') {
+                content = `
+                    <div class="slide-header"><span class="header-title">${cfg.title}</span></div>
+                    <div class="carousel-viewport">
+                        <div class="sub-slide layer-1">
+                            <h1>${cfg.visual.h1}</h1>
+                            <div class="primary-question">${cfg.visual.q}</div>
+                            <div class="content-text">${cfg.visual.txt}</div>
+                            <small style="color:#666; margin-top:30px; font-size:0.7rem;">&darr; Pull Down &darr;</small>
+                        </div>
+                        <div class="sub-slide layer-2" style="opacity:0;">
+                            <div class="role-label">LOGIC</div>
+                            <div class="content-text">${cfg.logic.txt}</div>
+                        </div>
+                        <div class="sub-slide layer-3" style="opacity:0;">
+                            <div class="role-label">PROOF</div>
+                            <div class="ascii-box">${cfg.proof.ascii}</div>
+                        </div>
+                    </div>`;
+            }
 
-class PhysicsController {
- constructor(el, cbs, sensorsActive = true) {
-  this.el = el; this.cbs = cbs; 
-  this.qEl = el.querySelector(".card-q"); 
-  this.active = false; 
-  this.locked = false; 
-  this.awaitingRecenter = true; 
-  
-  this.current = {x:0, y:0}; 
-  this.target = {x:0, y:0};  
-  
-  this.labels = {UP:el.querySelector(".sl-up"), LEFT:el.querySelector(".sl-left"), RIGHT:el.querySelector(".sl-right"), DOWN:el.querySelector(".sl-down")};
-  
-  this.el.classList.add('locked');
-  
-  const s = e => this.startDrag(e.touches?e.touches[0]:e); 
-  const m = e => this.move(e.touches?e.touches[0]:e); 
-  const e2 = () => this.end();
-  el.addEventListener("mousedown",s); window.addEventListener("mousemove",m); window.addEventListener("mouseup",e2);
-  el.addEventListener("touchstart",s,{passive:false}); el.addEventListener("touchmove",ev=>{if(this.active)ev.preventDefault();m(ev)},{passive:false}); el.addEventListener("touchend",e2);
+            else if (cfg.type === 'final') {
+                content = `
+                    <div class="slide-header"><span class="header-title">${cfg.title}</span></div>
+                    <div class="carousel-viewport">
+                        <div class="sub-slide layer-1">
+                            <div class="verdict-container">
+                                <div class="choice-header">YOUR ORDER</div>
+                                <div class="input-group" id="final-inputs"></div>
+                                <div class="choice-header">PRIMARY SELECTION</div>
+                                <div class="hero-section">
+                                    <div class="hero-burger" id="hero-burger-name">NO BURGER</div>
+                                    <div class="hero-sub" style="display:none;">FLAME-GRILLED</div>
+                                </div>
+                                <div class="final-actions">
+                                    <button class="btn btn-wa" onclick="sendWhatsappTicket()">SAVE TICKET</button>
+                                    <button class="btn btn-support" onclick="sendSupport()">SUPPORT</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            }
 
-  if(SENSORS_ENABLED && sensorsActive) {
-      this.handleMouseTether = this.handleMouseTether.bind(this);
-      this.handleMouseCommit = this.handleMouseCommit.bind(this);
-      window.addEventListener("mousemove", this.handleMouseTether);
-      window.addEventListener("mousedown", this.handleMouseCommit);
-      
-      this.handleOrientation = this.handleOrientation.bind(this);
-      if(window.DeviceOrientationEvent) window.addEventListener("deviceorientation", this.handleOrientation);
-      
-      this.loop = this.loop.bind(this);
-      this.raf = requestAnimationFrame(this.loop);
-  } else {
-      this.unlockCard();
-  }
- }
+            else if (cfg.type === 'brand') {
+                content = `
+                    <div class="slide-header"><span class="header-title">${cfg.title}</span></div>
+                    <div class="carousel-viewport">
+                        <div class="sub-slide layer-1">
+                            <div class="verdict-container" style="justify-content:center;">
+                                <div class="brand-logo-placeholder">H</div>
+                                <div class="choice-header" style="color:var(--brand-orange); margin-bottom:10px;">100% CANADIAN</div>
+                                <h1>THE BURGER BOSS</h1>
+                                <div class="primary-question" style="text-align:center;">"It's a Beautiful Thing"</div>
+                                <div class="content-text" style="text-align:center;">
+                                    Founded in 1959. Harvey's garnishes every burger to order. 
+                                </div>
+                                <div class="final-actions" style="margin-top:40px;">
+                                    <button class="btn btn-share" onclick="copyLink()">SHARE THIS APP</button>
+                                    <button class="btn" onclick="location.reload()">START OVER</button>
+                                    <button class="btn btn-insta" onclick="followInsta()">FOLLOW ON INSTA</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            }
 
- unlockCard() {
-     if(!this.awaitingRecenter) return;
-     this.awaitingRecenter = false;
-     this.el.classList.remove('locked');
- }
+            else if (cfg.type === 'contact') {
+                content = `
+                    <div class="slide-header"><span class="header-title">${cfg.title}</span></div>
+                    <div class="carousel-viewport">
+                        <div class="sub-slide layer-1">
+                            <div class="verdict-container" style="justify-content:center; text-align:center;">
+                                <h1>Contact DECIDER</h1>
+                                <div class="b2b-highlight">
+                                    Get <br>
+                                    <span class="b2b-bold">CUSTOM</span> <br>
+                                    Catalogue <br>
+                                    Menu <br>
+                                    for your business purpose
+                                </div>
+                                <div class="final-actions" style="margin-top:40px;">
+                                    <button class="btn btn-wa" onclick="contactDecider()">WHATSAPP US</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            }
 
- cleanup() {
-     cancelAnimationFrame(this.raf);
-     window.removeEventListener("mousemove", this.handleMouseTether);
-     window.removeEventListener("mousedown", this.handleMouseCommit);
-     window.removeEventListener("deviceorientation", this.handleOrientation);
- }
+            section.innerHTML = content;
+            container.appendChild(section);
+        });
 
- // --- PHYSICS LOOP ---
- loop() {
-     if(this.active || this.locked) return; 
+        slideElements = Array.from(document.querySelectorAll('.main-slide'));
+        attachEvents();
+    }
 
-     this.current.x += (this.target.x - this.current.x) * BALL_WEIGHT;
-     this.current.y += (this.target.y - this.current.y) * BALL_WEIGHT;
+    /* =========================================
+       LOGIC ENGINE (PATCH 5 - DATA ABSTRACTION)
+       ========================================= */
+    // Helper to abstract data source for potential Gemini injection
+    function getRenderData() {
+        return USER_CART;
+    }
 
-     if(this.awaitingRecenter && SENSORS_ENABLED) {
-         const tiltMag = Math.hypot(this.target.x, this.target.y);
-         const unlockThresh = SPHERE_RADIUS_PX * Math.tan(UNLOCK_ANGLE_DEG * Math.PI / 180);
-         if(tiltMag < unlockThresh) this.unlockCard();
-     }
+    function updateResult() {
+        const container = document.getElementById('final-inputs');
+        const burgerName = document.getElementById('hero-burger-name');
+        const heroSub = document.querySelector('.hero-sub');
+        
+        const data = getRenderData();
 
-     if(!this.awaitingRecenter) {
-         this.updateVisuals(this.current.x, this.current.y);
-         
-         if(SENSORS_ENABLED) {
-             const clickThresh = SPHERE_RADIUS_PX * Math.tan(CLICK_ANGLE_DEG * Math.PI / 180);
-             if(Math.abs(this.current.x) > clickThresh) {
-                 this.commitWithAnimation(Math.sign(this.current.x)*100, 0);
-             } 
-             else if(Math.abs(this.current.y) > clickThresh) {
-                 this.commitWithAnimation(0, Math.sign(this.current.y)*100);
-             }
-         }
-     }
-     
-     this.raf = requestAnimationFrame(this.loop);
- }
+        if (data.burger) {
+            burgerName.innerText = data.burger;
+            heroSub.innerText = "FLAME-GRILLED";
+            heroSub.style.display = 'block';
+        } else {
+            burgerName.innerText = "NO BURGER";
+            heroSub.style.display = 'none';
+        }
 
- handleMouseTether(e) {
-     if(this.active || this.locked) return; 
-     const cx = window.innerWidth / 2;
-     const cy = window.innerHeight / 2;
-     this.target.x = (e.clientX - cx) * 0.8;
-     this.target.y = (e.clientY - cy) * 0.8;
- }
+        let html = '';
+        const keys = ['chicken', 'side', 'drink', 'timing', 'value']; 
+        
+        let hasItems = false;
+        keys.forEach(k => {
+            if(data[k]) {
+                hasItems = true;
+                html += `
+                <div class="input-row">
+                    <span class="input-key">${k.toUpperCase()}</span>
+                    <span class="input-val">${data[k]}</span>
+                </div>`;
+            }
+        });
+        
+        if (!hasItems && !data.burger) {
+            html = '<div style="text-align:center; color:#666; padding:20px;">Cart is empty.<br>Speak or swipe to add items.</div>';
+        }
+        
+        container.innerHTML = html;
+    }
 
- handleMouseCommit(e) {
-     if(this.active || this.locked || this.awaitingRecenter) return;
-     if(Math.abs(this.target.x) > 80 || Math.abs(this.target.y) > 80) {
-         this.commitWithAnimation(this.target.x, this.target.y);
-     }
- }
+    function sendWhatsappTicket() {
+        if (!SES_BEACON_SENT) {
+            // Simulated telemetry beacon (PATCH 6)
+            console.log("Telemetry sent for session: " + CURRENT_SES_ID);
+            SES_BEACON_SENT = true;
+        }
 
- handleOrientation(event) {
-     if(this.active || this.locked) return;
+        let msg = "MY HARVEY'S ORDER:\n";
+        Object.keys(USER_CART).forEach(k => msg += `- ${k.toUpperCase()}: ${USER_CART[k]}\n`);
+        window.open(`https://wa.me/916351537770?text=${encodeURIComponent(msg)}`, '_blank');
+    }
 
-     let g = event.gamma; 
-     let b = event.beta - 45; 
+    function sendSupport() {
+        const msg = "I needed assistance with my order flow. Thanks!. How can I Support";
+        window.open(`https://wa.me/916351537770?text=${encodeURIComponent(msg)}`, '_blank');
+    }
 
-     let radX = (g * Math.PI) / 180;
-     let radY = (b * Math.PI) / 180;
+    function contactDecider() {
+        window.open('https://wa.me/916351537770?text=I%27m%20interested', '_blank');
+    }
 
-     const MAX_RAD = 20 * Math.PI / 180;
-     radX = Math.max(-MAX_RAD, Math.min(MAX_RAD, radX));
-     radY = Math.max(-MAX_RAD, Math.min(MAX_RAD, radY));
+    function copyLink() {
+        const url = "https://dharamdaxini.github.io/via.decide.food/";
+        navigator.clipboard.writeText(url).then(() => {
+            showToast('LINK COPIED TO CLIPBOARD');
+        });
+    }
 
-     if(Math.abs(g) > 0.5) this.target.x = SPHERE_RADIUS_PX * Math.tan(radX);
-     else this.target.x = 0;
+    function followInsta() {
+        window.open('https://www.instagram.com/harveys?igsh=MWY0M3VyemQ2NHFjZw==', '_blank');
+    }
 
-     if(Math.abs(b) > 0.5) this.target.y = SPHERE_RADIUS_PX * Math.tan(radY);
-     else this.target.y = 0;
- }
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.innerText = msg;
+        t.classList.add('visible');
+        setTimeout(() => t.classList.remove('visible'), 2000);
+    }
 
- commitWithAnimation(dx, dy) {
-     this.locked = true;
-     this.cleanup(); 
-     
-     const flyX = dx * 6;
-     const flyY = dy * 6;
-     
-     this.el.style.transition = "0.4s cubic-bezier(0.2, 0.8, 0.2, 1)";
-     this.el.style.transform = `translate(${flyX}px, ${flyY}px) rotate(${flyX/15}deg)`;
-     this.el.style.opacity = "0";
+    function goToSlide(idx) {
+        if (idx < 0 || idx >= slideElements.length) return;
 
-     setTimeout(() => {
-         this.cbs.onCommit(this.dir(dx, dy));
-     }, 300);
- }
+        const curr = slideElements[currentIdx];
+        curr.classList.remove('active', 'deck-active');
+        
+        if (idx > currentIdx) {
+            curr.classList.add('prev');
+            curr.classList.remove('next');
+        } else {
+            curr.classList.add('next');
+            curr.classList.remove('prev');
+        }
+        
+        const deck = curr.querySelector('.carousel-viewport')._deck;
+        if(deck && deck.slides) updateLayers(deck.slides, 0);
 
- startDrag(p){ 
-     this.active=true; 
-     this.unlockCard(); 
-     this.start={x:p.clientX, y:p.clientY}; 
-     this.el.style.transition="none"; 
- }
- move(p){ 
-     if(!this.active) return;
-     this.updateVisuals(p.clientX - this.start.x, p.clientY - this.start.y);
- }
- end(){
-     if(!this.active) return; this.active=false;
-     const m = new WebKitCSSMatrix(getComputedStyle(this.el).transform);
-     if(Math.hypot(m.m41, m.m42) > 100) this.cbs.onCommit(this.dir(m.m41, m.m42));
-     else { this.el.style.transition="0.3s cubic-bezier(0.2,0.8,0.2,1)"; this.el.style.transform="translate(0,0)"; }
- }
+        currentIdx = idx;
+        const next = slideElements[currentIdx];
+        
+        next.classList.remove('prev', 'next');
+        next.classList.add('active');
 
- updateVisuals(dx, dy) {
-     this.el.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx/25}deg)`;
-     if(this.qEl) this.qEl.style.transform = `translate(${-dx/8}px, ${-dy/8}px)`;
+        if(next.id === 'final') updateResult();
 
-     const d = Math.hypot(dx, dy);
-     
-     Object.values(this.labels).forEach(l => l && (l.style.opacity = 0));
-     
-     if(d > 30) {
-         const dir = this.dir(dx, dy);
-         if(this.labels[dir]) {
-             const opacity = Math.min((d-30)/140, 1);
-             this.labels[dir].style.opacity = opacity;
-             this.labels[dir].style.transform = `scale(${0.9 + (opacity * 0.1)})`;
-         }
-     }
- }
+        dragRatio = 0;
+        document.getElementById('depth-fill').style.height = '0%';
+    }
 
- dir(dx, dy){
-     const a = (Math.atan2(-dy, dx) * 180 / Math.PI + 360) % 360;
-     if(a>45 && a<135) return "UP"; if(a>135 && a<225) return "LEFT"; if(a>225 && a<315) return "DOWN"; return "RIGHT";
- }
-}
+    function updateLayers(slides, ratio) {
+        if(!slides[0]) return; 
+        if(slides[0].closest('.main-slide').dataset.mode === 'options') return;
 
-const UI = {stack:document.getElementById("stack"), id:document.getElementById("id-ui"), xp:document.getElementById("xp-ui"), bar:document.getElementById("progress-bar"), gyro:document.getElementById("gyro-status")};
+        const vis = slides[0];
+        const log = slides[1];
+        const prf = slides[2];
 
-function card(text, labels, cb, allowSensors = true) {
- UI.stack.innerHTML=""; const el=document.createElement("div"); el.className="card";
- el.innerHTML=`<div class="card-q">${chemText(text).replace(/\n/g,"<br>")}</div>
-  <div class="swipe-label sl-up">${chemText(labels.up)||""}</div><div class="swipe-label sl-left">${chemText(labels.left)||""}</div><div class="swipe-label sl-right">${chemText(labels.right)||""}</div><div class="swipe-label sl-down">${chemText(labels.down)||""}</div>`;
- UI.stack.appendChild(el); 
- Q_START_TIME = Date.now();
- new PhysicsController(el, {onCommit:cb}, allowSensors);
-}
+        if (ratio > 0.1) {
+            vis.style.transform = `translateY(${ratio * -80}px) scale(${1 - ratio*0.1})`;
+            vis.style.opacity = Math.max(0, 1 - ratio*3);
+        } else {
+            vis.style.transform = ''; vis.style.opacity = 1;
+        }
 
-// --- PATCH 3: LLM INTERFACE ---
-async function LLM_DECIDE(payload) {
-    // 🔁 STATIC MODE (Placeholder for Gemini)
-    return null;
-}
-
-function pingAdmin() {
-    log("PINGING ADMIN...", "primary");
-    fetch(BEACON_URL, { method: "GET" }) 
-        .then(res => res.json())
-        .then(data => {
-            if(data.status === "ONLINE") {
-                log("ADMIN v146.2 CONNECTED", "active");
+        if (log) {
+            if (ratio > 0.25 && ratio < 0.65) {
+                log.style.opacity = Math.min(1, (ratio - 0.25) * 4);
+                log.style.transform = `translateY(${100 - (ratio-0.25)*300}px)`;
+            } else if (ratio > 0.65) {
+                log.style.opacity = Math.max(0, 1 - (ratio - 0.65) * 4);
+                log.style.transform = `translateY(-50px)`;
             } else {
-                log("ADMIN STATUS: UNKNOWN", "danger");
+                log.style.opacity = 0; log.style.transform = `translateY(100px)`;
             }
-        })
-        .catch(e => {
-            log("ADMIN DISCONNECTED", "danger");
-        });
-}
+        }
 
-function begin(){
- if(USER_MOBILE) log(`LOGIN: ${USER_MOBILE} | CREDITS: ${CREDITS}`, "primary");
- else log("LOGIN: GUEST | CREDITS: " + CREDITS, "normal");
- 
- const tiltLabel = SENSORS_ENABLED ? "SENSORS ACTIVE" : "ENABLE TILT";
- 
- card(`DATA LOADED\n${RAW_DATA.length} UNITS`,{up:"START QUIZ", down:tiltLabel, left:"VAULT", right:"RELOAD"}, dir=>{
-  if(dir==="UP") setPick(); 
-  if(dir==="DOWN") requestSensorAccess(); 
-  if(dir==="LEFT") checkLoginForVault();
-  if(dir==="RIGHT") location.reload();
- });
-}
+        if (prf) {
+            if (ratio > 0.55) {
+                prf.style.opacity = Math.min(1, (ratio - 0.55) * 4);
+                prf.style.transform = `translateY(${100 - (ratio-0.55)*300}px)`;
+            } else {
+                prf.style.opacity = 0; prf.style.transform = `translateY(100px)`;
+            }
+        }
 
-// --- PATCH 2: SENSOR RECURSION FIX ---
-function requestSensorAccess() {
-    if (SENSORS_ENABLED) return;
-    SENSORS_ENABLED = true;
-    UI.gyro.classList.add('active');
-    
-    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-        DeviceOrientationEvent.requestPermission()
-            .then(state => {
-                if (state === 'granted') log("GYRO ENABLED", "active");
-                else log("GYRO DENIED (MOUSE ONLY)", "danger");
-            })
-            .catch(() => log("MOUSE MODE ONLY", "normal"));
-    } else {
-        log("HYBRID SENSORS ON", "active");
+        const bar = document.getElementById('depth-fill');
+        bar.style.height = (ratio * 100) + '%';
+        if(ratio < 0.3) bar.style.background = '#333';
+        else if(ratio < 0.6) bar.style.background = '#ff671f';
+        else if(ratio < 0.9) bar.style.background = '#00e676';
+        else bar.style.background = '#fff';
     }
-    // REMOVED begin() CALL TO PREVENT DUPLICATION
-}
 
-function checkLoginForVault(){
-    if(USER_MOBILE && USER_MOBILE.length > 5){ openVault(0); return; }
-    const mob = prompt("SECURE VAULT ACCESS\n\nEnter your Registered Mobile Number to unlock:");
-    if(mob && mob.length >= 10){
-        localStorage.setItem("USER_MOBILE", mob); USER_MOBILE = mob;
-        log(`LOGIN SUCCESS: ${mob}`, "active"); openVault(0);
-    } else { log("ACCESS DENIED", "danger"); begin(); }
-}
-
-function openVault(index){
-    if(VAULT.length === 0){ 
-        card("LOCAL ARCHIVE EMPTY\n\nRecover from Cloud?", {down:"WHATSAPP", up:"MENU"}, dir => {
-            if(dir==="DOWN") {
-                const lastSes = localStorage.getItem("LAST_SES_ID") || "UNKNOWN";
-                const text = `VAULT_RECOVERY || MOB: ${USER_MOBILE || "UNKNOWN"} || LAST_ID: ${lastSes}`;
-                window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
-            }
-            else begin();
-        });
-        return; 
+    /* =========================================
+       LLM INTERFACE (PATCH 3)
+       ========================================= */
+    async function LLM_DECIDE(payload) {
+        // Placeholder for Gemini integration
+        // Currently returns null to fallback to static logic
+        return null;
     }
-    if(index < 0) { begin(); return; } 
-    if(index >= VAULT.length) index = VAULT.length - 1;
 
-    const item = VAULT[index];
-    
-    log(`ARCHIVE: ${item.id}`, "primary");
-    card(`VAULT // ${item.id}\n\nSCORE: ${item.score}/${item.total}\n${item.date}`,
-        { up: "OPEN PDF", left: "PREV", right: "NEXT" }, 
-        dir => {
-            if(dir === "LEFT") openVault(index - 1);
-            if(dir === "RIGHT") openVault(index + 1);
-            if(dir === "UP") {
-                log("OPENING ARCHIVE...", "active");
-                renderSessionPDF(item.data, item.id);
+    /* =========================================
+       NLP ENGINE
+       ========================================= */
+    let isListening = false;
+    let recognition;
+
+    function toggleListenMode() {
+        if (!('webkitSpeechRecognition' in window)) return alert("Browser not supported. Try Chrome/Safari.");
+        
+        const btn = document.getElementById('mic-toggle');
+        const feedback = document.getElementById('voice-feedback');
+        
+        if (isListening) {
+            recognition.stop();
+            isListening = false;
+            btn.classList.remove('listening');
+            feedback.classList.remove('visible');
+        } else {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'en-US';
+            
+            recognition.onstart = () => { 
+                isListening = true; 
+                btn.classList.add('listening'); 
+                feedback.classList.add('visible');
+                feedback.innerText = "LISTENING...";
+            };
+            recognition.onend = () => { 
+                isListening = false; 
+                btn.classList.remove('listening'); 
+                feedback.classList.remove('visible');
+            };
+            
+            recognition.onresult = (e) => {
+                const txt = e.results[0][0].transcript.toLowerCase();
+                feedback.innerText = `HEARD: "${txt}"`;
+                setTimeout(() => processVoice(txt), 500); // Small delay for visual read
+            };
+            recognition.start();
+        }
+    }
+
+    function processVoice(cmd) {
+        // 1. Navigation
+        if (cmd.includes("next")) return goToSlide(currentIdx + 1);
+        if (cmd.includes("back")) return goToSlide(currentIdx - 1);
+        if (cmd.includes("start over") || cmd.includes("reset")) return location.reload();
+
+        // 2. Actions
+        if (cmd.includes("ticket") || cmd.includes("save")) return sendWhatsappTicket();
+        if (cmd.includes("support")) return sendSupport();
+        if (cmd.includes("share")) return copyLink();
+
+        // 3. NLP Intent: Add vs Remove
+        const isRemove = cmd.match(/\b(remove|delete|no|clear|cancel|without)\b/);
+        
+        // 4. Scan Config for Matches
+        CONFIG.slides.forEach(s => {
+            if (s.type === 'selector') {
+                Object.keys(s.options).forEach(optKey => {
+                    const opt = s.options[optKey];
+                    // Check if any voice trigger exists in the command
+                    if (opt.voice && opt.voice.some(v => cmd.includes(v))) {
+                        
+                        if (isRemove) {
+                            if(USER_CART[s.key] === optKey) {
+                                delete USER_CART[s.key];
+                                showToast(`REMOVED: ${optKey}`);
+                            }
+                        } else {
+                            USER_CART[s.key] = optKey;
+                            showToast(`ADDED: ${optKey}`);
+                        }
+                        
+                        // Hot Reload Ticket if Visible
+                        if(slideElements[currentIdx].id === 'final') updateResult();
+                    }
+                });
             }
-        }, false 
-    );
-}
+        });
 
-function setPick(){
- const sets=[...new Set(RAW_DATA.map(d=>d.set))];
- if(sets.length===0){card("NO DATA FOUND",{down:"RETRY"},()=>location.reload());return;}
- card(sets[SET_CURSOR],{left:"",right:"",up:"SELECT",down:"BACK"},dir=>{
-  if(dir==="LEFT"){SET_CURSOR=(SET_CURSOR-1+sets.length)%sets.length;setPick();}
-  if(dir==="RIGHT"){SET_CURSOR=(SET_CURSOR+1)%sets.length;setPick();}
-  if(dir==="UP"){ACTIVE_SET=sets[SET_CURSOR];volumePick();}
-  if(dir==="DOWN")begin();
- });
-}
+        // Optional LLM Hook (PATCH 4)
+        LLM_DECIDE({
+            session_id: CURRENT_SES_ID,
+            command: cmd,
+            cart: USER_CART
+        });
+    }
 
-function volumePick(){
- card(`QUESTION VOLUME`,{up:"10 Q",left:"25 Q",right:"50 Q",down:"ALL"},dir=>{
-    if(dir==="UP")VOLUME_LIMIT=10; if(dir==="LEFT")VOLUME_LIMIT=25; if(dir==="RIGHT")VOLUME_LIMIT=50; if(dir==="DOWN")VOLUME_LIMIT=null;
-    startQuiz();
- });
-}
+    /* =========================================
+       TOUCH ENGINE (PATCH 2 - RECURSION FIX)
+       ========================================= */
+    function attachEvents() {
+        // Prevents re-attaching listeners if called multiple times
+        if (container.dataset.listenersAttached) return;
+        container.dataset.listenersAttached = "true";
 
-function startQuiz(){
- log("INITIATING QUIZ...", "active");
- let base = RAW_DATA.filter(d=>d.set===ACTIVE_SET);
- base = shuffle(base); 
- if(VOLUME_LIMIT && VOLUME_LIMIT < base.length) base = base.slice(0, VOLUME_LIMIT);
- POOL=base; WRONG=[]; SESSION_ALL=[]; XP=0; ATTEMPTED=new Set();
- CURRENT_SES_ID = null; SES_BEACON_SENT = false; 
- SESSION_LOG = []; PIVOT_COUNT = 0; 
- nextQ();
-}
+        let startX = 0, startY = 0;
 
-// --- PATCH 1: HARD CRASH FIXES (nextQ logic) ---
-function nextQ(){
- if(!CURRENT_SES_ID && SESSION_ALL.length > 0 && POOL.length <= SESSION_ALL.length){ generateSessionID(); }
- 
- if(!POOL.length){ 
-    if(WRONG.length > 0){ review(); return; } // Logic Fix
-    report(); return; 
- }
- 
- const d=POOL.shift();
- log(`ID: ${d.id}`, "normal");
- if(!SESSION_ALL.includes(d)) SESSION_ALL.push(d); 
- const opts = shuffle([d.u, d.l, d.r]);
- const map = { up: opts[0], left: opts[1], right: opts[2] };
- 
- card(d.q, map, dir=>{
-  let picked = null;
-  if(dir==="UP") picked = map.up; if(dir==="LEFT") picked = map.left; if(dir==="RIGHT") picked = map.right;
-  let c = d.correct; if(c==="UP"||c==="A") c=d.u; else if(c==="LEFT"||c==="B") c=d.l; else if(c==="RIGHT"||c==="R"||c==="C") c=d.r;
-  const isCorrect = String(picked).trim().toLowerCase() === String(c).trim().toLowerCase();
-  
-  const latency = Date.now() - Q_START_TIME;
-  
-  // PATCH 4: LLM HOOK
-  LLM_DECIDE({
-      session_id: CURRENT_SES_ID,
-      question_id: d.id,
-      question: d.q,
-      options: map,
-      user_history: SESSION_LOG.slice(-5),
-      latency
-  });
+        document.querySelectorAll('.carousel-viewport').forEach(view => {
+            const slides = Array.from(view.querySelectorAll('.sub-slide'));
+            view._deck = { slides, currOpt: 0 };
+            
+            let isDragging = false;
+            let axis = null;
 
-  SESSION_LOG.push({ id: d.id, res: isCorrect ? "WIN" : "LOSS", latency: latency });
+            view.addEventListener('touchstart', e => {
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                isDragging = true;
+                axis = null;
+            }, {passive: true});
 
-  if(!isCorrect){ WRONG.push(d); } else { if(!ATTEMPTED.has(d.id)){ XP+=1; } }
-  ATTEMPTED.add(d.id);
-  UI.xp.textContent=`${XP} / ${SESSION_ALL.length}`;
-  UI.bar.style.width = ((SESSION_ALL.length - POOL.length) / SESSION_ALL.length) * 100 + "%";
-  nextQ();
- });
-}
+            view.addEventListener('touchmove', e => {
+                if(!isDragging) return;
+                const dx = e.touches[0].clientX - startX;
+                const dy = e.touches[0].clientY - startY;
 
-function review(){
- if(!WRONG.length){ report(); return; } 
- const d=WRONG[0]; 
- log("REVIEW MODE", "primary");
- log(`HINT: ${d.hint ? "ACTIVE" : "NONE"}`, "active");
- card(`REVIEW NOTE\n\n${d.logic || "Review the core principles."}`,{up:"RETRY", down:"SKIP"},dir=>{
-    if(dir==="UP"){ WRONG.shift(); POOL.unshift(d); } else { WRONG.shift(); }
-    nextQ();
- });
-}
+                if(!axis) axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
 
-function report(){
- if(!CURRENT_SES_ID) generateSessionID();
- const percent = Math.round((XP / SESSION_ALL.length) * 100) || 0;
- const statusText = USER_MOBILE ? `USER: ${USER_MOBILE}` : "GUEST (UNLINKED)";
- 
- card(`SUMMARY\n\n${XP} / ${SESSION_ALL.length} Correct\n(${percent}%)\n\nID: ${CURRENT_SES_ID}\n${statusText}`,{down:"DOWNLOAD PDF", up:"RESTART", left:"MENU"},dir=>{
-    if(dir==="DOWN") handleDownloadRequest();
-    if(dir==="UP") startQuiz(); 
-    if(dir==="LEFT") begin();
- }, false);
-}
+                const parentSlide = view.closest('.main-slide');
+                const isOptions = parentSlide.dataset.mode === 'options';
 
-function handleDownloadRequest(){
-    if(!USER_MOBILE){
-        log("IDENTITY UNLINKED", "danger");
-        const text = `REGISTERING ACCOUNT.\nLINK MY ID: ${CURRENT_SES_ID}`;
-        const url = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
-        card(`ACCOUNT REQUIRED\n\nTo save this PDF, you must link your device.\n\nID: ${CURRENT_SES_ID}`,
-            { up: "LINK VIA WHATSAPP", down: "I HAVE LINKED" },
-            (dir) => {
-                if(dir === "UP") { window.open(url, '_blank'); }
-                if(dir === "DOWN") {
-                    const mob = prompt("ENTER REGISTERED MOBILE (For PDF Stamping):\n\nEnter your mobile number here...");
-                    if(mob && mob.length >= 10) {
-                        localStorage.setItem("USER_MOBILE", mob); USER_MOBILE = mob;
-                        log("IDENTITY LINKED", "active"); report();
-                    } else { log("INVALID INPUT", "normal"); handleDownloadRequest(); }
+                if(axis === 'y' && dy < 0) return; 
+
+                if(isOptions) {
+                    if(axis === 'x') slides.forEach(s => s.style.transform = `translateX(${dx}px)`);
+                    if(axis === 'y' && dy > 0) slides.forEach(s => s.style.transform = `translateY(${dy * 0.3}px)`);
+                    return;
                 }
-            }, false
-        );
-        return;
+
+                if(axis === 'y' && dy > 0) {
+                    e.preventDefault();
+                    dragRatio = Math.min(dy / MAX_DRAG, 1);
+                    updateLayers(view._deck.slides, dragRatio);
+                    parentSlide.classList.add('deck-active');
+                }
+            }, {passive: false});
+
+            view.addEventListener('touchend', e => {
+                if(!isDragging) return;
+                isDragging = false;
+                
+                const dx = e.changedTouches[0].clientX - startX;
+                const dy = e.changedTouches[0].clientY - startY;
+                const parentSlide = view.closest('.main-slide');
+                const isOptions = parentSlide.dataset.mode === 'options';
+
+                if (axis === 'y' && dy < -60) {
+                    if (currentIdx > 0) {
+                        goToSlide(currentIdx - 1);
+                        return;
+                    }
+                }
+
+                if(isOptions) {
+                    const key = view.dataset.key;
+                    const total = parseInt(view.dataset.total);
+                    let curr = view._deck.currOpt;
+
+                    if(axis === 'x' && Math.abs(dx) > 50) {
+                        if(dx < 0 && curr < total - 1) curr++; 
+                        else if(dx > 0 && curr > 0) curr--;   
+                        
+                        view._deck.currOpt = curr;
+                        
+                        slides.forEach((s, i) => {
+                            if(i === curr) {
+                                s.classList.remove('opt-hidden');
+                                s.classList.add('opt-active');
+                                USER_CART[key] = s.dataset.val;
+                            } else {
+                                s.classList.remove('opt-active');
+                                s.classList.add('opt-hidden');
+                            }
+                        });
+                    }
+                    
+                    slides.forEach(s => s.style.transform = '');
+
+                    if(axis === 'y' && dy > 60) {
+                        if(!USER_CART[key]) USER_CART[key] = slides[view._deck.currOpt].dataset.val;
+                        goToSlide(currentIdx + 1);
+                    }
+                    return;
+                }
+
+                if(axis === 'y' && dy > 0) {
+                    if(dragRatio > TRIGGER_THRESHOLD) {
+                        goToSlide(currentIdx + 1);
+                    } else {
+                        parentSlide.classList.remove('deck-active');
+                        updateLayers(view._deck.slides, 0);
+                        document.getElementById('depth-fill').style.height = '0%';
+                    }
+                    dragRatio = 0;
+                }
+            });
+        });
     }
-    exportSessionPDF();
-}
 
-// --- PATCH 5: PDF DATA HANDLING ---
-function exportSessionPDF(data=null, id=null){
- const renderData = Array.isArray(data) ? data : [...SESSION_ALL]; // Safety check
- const renderID = id || CURRENT_SES_ID;
- 
- if(!data){ 
-    if(CREDITS < 1) { log("INSUFFICIENT CREDITS", "danger"); return; }
-    CREDITS--;
-    localStorage.setItem("USER_CREDITS", CREDITS);
-    VAULT.unshift({ id: renderID, date: new Date().toLocaleDateString(), score: XP, total: SESSION_ALL.length, data: [...SESSION_ALL] });
-    localStorage.setItem("USER_VAULT", JSON.stringify(VAULT));
-    log(`UNIT SPENT // BAL: ${CREDITS}`, "primary");
- }
+    // PATCH 2: REQUEST SENSOR ACCESS (Replaces old recursive logic)
+    function requestSensorAccess() {
+        if (SENSORS_ENABLED) return;
+        SENSORS_ENABLED = true;
+        // Sensor logic would go here if needed in future
+        console.log("Sensors initialized (Mouse/Touch hybrid)");
+    }
 
- log("GENERATING PDF...", "active");
- const {jsPDF}=window.jspdf; const doc=new jsPDF();
- const unique=renderData.filter((q,i,self)=>i===self.findIndex(t=>(t.id===q.id)));
- let y=20; const ML=15; const W=180;
- const COL_OPT_W=45; const COL_LOG_W=65; const COL_EXE_W=65;
- const COL_LOG_X=ML+COL_OPT_W+5; const COL_EXE_X=COL_LOG_X+COL_LOG_W+5;
+    init(); // BOOT
 
- doc.setFont("times","bold"); doc.setFontSize(16);
- doc.text(`VIA.STACK // ${renderID}`,105,y,{align:"center"});
- doc.setFontSize(10); doc.text(`USER: ${USER_MOBILE || "GUEST"}`, 105, y+5, {align:"center"});
- doc.line(ML,y+8,195,y+8); y+=15;
-
- unique.forEach((d,i)=>{
-  if(y>240){doc.addPage();y=20;}
-  doc.setFont("helvetica","bold"); doc.setFontSize(8); doc.setTextColor(100);
-  doc.text(`${d.id} // ${d.dom||"GEN"}`,ML,y); y+=5;
-  doc.setFont("times","bold"); doc.setFontSize(12); doc.setTextColor(0);
-  const qLines = doc.splitTextToSize(cleanPDF(d.q),W); doc.text(qLines,ML,y); y+=(qLines.length*5)+3;
-  doc.setDrawColor(200); doc.setLineWidth(0.1); doc.line(ML,y,195,y); y+=5;
-  
-  const startY=y;
-  doc.setFont("helvetica","bold"); doc.setFontSize(7); doc.setTextColor(150); doc.text("OPTIONS",ML,y); y+=4;
-  doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(80,80,80); 
-  const optA=`(A) ${cleanPDF(d.u)}`; const optB=`(B) ${cleanPDF(d.l)}`; const optC=`(C) ${cleanPDF(d.r)}`;
-  doc.text(doc.splitTextToSize(optA,COL_OPT_W),ML,y); y+=doc.splitTextToSize(optA,COL_OPT_W).length*4+2;
-  doc.text(doc.splitTextToSize(optB,COL_OPT_W),ML,y); y+=doc.splitTextToSize(optB,COL_OPT_W).length*4+2;
-  doc.text(doc.splitTextToSize(optC,COL_OPT_W),ML,y); y+=doc.splitTextToSize(optC,COL_OPT_W).length*4+2;
-  
-  let maxH=y; y=startY;
-  doc.setFont("helvetica","bold"); doc.setFontSize(7); doc.setTextColor(150); doc.text("THEORY",COL_LOG_X,y); y+=4;
-  doc.setFont("times","italic"); doc.setFontSize(9); doc.setTextColor(50);
-  const logT=doc.splitTextToSize(cleanPDF(d.logic||"-"),COL_LOG_W); doc.text(logT,COL_LOG_X,y);
-  if(y+(logT.length*4)>maxH) maxH=y+(logT.length*4);
-  y=startY;
-  
-  doc.setFont("helvetica","bold"); doc.setFontSize(7); doc.setTextColor(150); doc.text("EXECUTION",COL_EXE_X,y); y+=4;
-  doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(0);
-  const s1=`1. ${cleanPDF(d.step1||"-")}`; const s2=`2. ${cleanPDF(d.step2||"-")}`;
-  const s1L=doc.splitTextToSize(s1,COL_EXE_W); doc.text(s1L,COL_EXE_X,y); y+=(s1L.length*4)+2;
-  const s2L=doc.splitTextToSize(s2,COL_EXE_W); doc.text(s2L,COL_EXE_X,y);
-  if(y+(s2L.length*4)>maxH) maxH=y+(s2L.length*4);
-  
-  y=maxH+5;
-  if(d.trap){
-   doc.setLineDash([1,1],0); doc.line(ML,y,195,y); doc.setLineDash([]); y+=4;
-   doc.setFont("helvetica","bold"); doc.setFontSize(7); doc.setTextColor(200,50,50); doc.text("TRAP:",ML,y);
-   doc.setFont("times","italic"); doc.setTextColor(80); doc.text(cleanPDF(d.trap),ML+35,y); y+=8;
-  } else {y+=5;}
-  y+=5;
- });
-
- const fileName = `ALCHEMIST_${renderID}.pdf`;
- doc.save(fileName);
-
- // --- PATCH 6: TELEMETRY GUARD ---
- if(!data && !SES_BEACON_SENT) {
-     SES_BEACON_SENT = true;
-     sendTelemetry(); 
- }
- setTimeout(begin,500);
-}
-
-function sendTelemetry(sid) {
-    if(!BEACON_URL) return;
-    const totalLatency = SESSION_LOG.reduce((sum, item) => sum + item.latency, 0);
-    const avgLatency = SESSION_LOG.length > 0 ? Math.round(totalLatency / SESSION_LOG.length) : 0;
-    const accuracy = SESSION_ALL.length > 0 ? Math.round((XP / SESSION_ALL.length) * 100) : 0;
-
-    log("UPLOADING SESSION...", "primary");
-    
-    fetch(BEACON_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            ses_id: CURRENT_SES_ID,
-            mobile: USER_MOBILE || "GUEST",
-            credits: CREDITS,
-            score: XP,
-            accuracy: accuracy,
-            latency: avgLatency,
-            pivots: PIVOT_COUNT,
-            log: SESSION_LOG
-        })
-    }).then(() => {
-        log("DATA SECURED", "active");
-    }).catch(e => {
-        log("DATA SYNC FAILED", "danger");
-    });
-}
-
-function generateSessionID() {
-    const hash = Math.random().toString(36).substring(2, 7).toUpperCase();
-    CURRENT_SES_ID = `SES_${hash}`;
-    localStorage.setItem("LAST_SES_ID", CURRENT_SES_ID);
-    log(`SESSION HASH: ${CURRENT_SES_ID}`, "primary");
-}
-
-function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a;}
-const cleanPDF = t => String(t||"").replace(/<[^>]*>/g, "").replace(/&Delta;/g, "Δ");
-
-async function init() {
-  log("SYSTEM BOOT", "active");
-  pingAdmin();
-
-  // Use INJECTED_DATA instead of fetching
-  RAW_DATA = INJECTED_DATA.map(d => ({
-    id: d.id,
-    set: d.set || "DEFAULT",
-    dom: d.dom || "GEN",
-    topic: d.topic || "",
-    q: d.q,
-    u: d.u,
-    l: d.l,
-    r: d.r,
-    correct: d.correct,
-    logic: d.logic || "",
-    hint: d.hint || "",
-    trap: d.trap || "",
-    step1: d.s1 || d.step1 || "",
-    step2: d.s2 || d.step2 || ""
-  })).filter(d => d.id); 
-
-  log(`STATIC DATA LOADED (${RAW_DATA.length})`, "active");
-  begin();
-}
-init();
 </script>
 </body>
 </html>
