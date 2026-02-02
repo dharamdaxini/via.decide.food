@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Harvey's Decision Engine | SWIPE-OS v4.11</title>
+    <title>Harvey's Decision Engine | SWIPE-OS v4.12</title>
     <style>
         /* =========================================
            CORE SYSTEM
@@ -225,6 +225,7 @@
             font-size: 0.9rem;
         }
         .btn-wa { background: #25D366; color: #000; border: none; }
+        .btn-support { background: transparent; border: 1px solid #444; color: #888; }
 
         #depth-fill {
             position: fixed; right: 0; top: 0; bottom: 0; width: 4px;
@@ -358,11 +359,17 @@
             }
           }
         },
-        // 6. HUNGER
+        // 6. FINAL VERDICT (MOVED HERE)
+        {
+          "id": "final",
+          "type": "final",
+          "title": "06 / 12 · ORDER TICKET"
+        },
+        // 7. HUNGER
         {
           "id": "hunger",
           "type": "standard",
-          "title": "06 / 12 · HUNGER CALIBRATION",
+          "title": "07 / 12 · HUNGER CALIBRATION",
           "visual": {
             "h1": "HOW HUNGRY?",
             "q": "Calibrating protein requirements.",
@@ -375,11 +382,11 @@
             "ascii": "[ SATIETY INDEX ]\nOriginal: [==      ] 2hrs\nAngus   : [======  ] 5hrs"
           }
         },
-        // 7. TIMING (CONVERTED TO SELECTOR)
+        // 8. TIMING
         {
           "id": "timing",
           "type": "selector",
-          "title": "07 / 12 · TIMING STRATEGY",
+          "title": "08 / 12 · TIMING STRATEGY",
           "key": "timing",
           "options": {
             "OFF-PEAK": {
@@ -394,11 +401,11 @@
             }
           }
         },
-        // 8. CONSISTENCY
+        // 9. CONSISTENCY
         {
           "id": "consistency",
           "type": "standard",
-          "title": "08 / 12 · HUMAN FACTOR",
+          "title": "09 / 12 · HUMAN FACTOR",
           "visual": {
             "h1": "EXECUTION RISK",
             "q": "Can you tolerate inconsistency?",
@@ -411,11 +418,11 @@
             "ascii": "[ SCOOP VARIANCE ]\nTarget : 15g\nActual : 10g - 25g\nRisk   : High"
           }
         },
-        // 9. PATTY LOGIC
+        // 10. PATTY LOGIC
         {
           "id": "patty-logic",
           "type": "standard",
-          "title": "09 / 12 · PATTY ARCHITECTURE",
+          "title": "10 / 12 · PATTY ARCHITECTURE",
           "visual": {
             "h1": "TEXTURE PROFILE",
             "q": "The Mouthfeel Difference.",
@@ -428,11 +435,11 @@
             "ascii": "[ DENSITY ]\nOriginal: [====    ] Soft\nAngus   : [========] Firm"
           }
         },
-        // 10. METHOD
+        // 11. METHOD
         {
           "id": "method",
           "type": "standard",
-          "title": "10 / 12 · THE RITUAL",
+          "title": "11 / 12 · THE RITUAL",
           "visual": {
             "h1": "GARNISH CONTROL",
             "q": "Why Harvey’s feels different",
@@ -445,11 +452,11 @@
             "ascii": "[ ORDER ERROR RATE ]\nFAST FOOD : ||||| 12%\nHARVEY'S  : | 2%"
           }
         },
-        // 11. VALUE
+        // 12. VALUE
         {
           "id": "value-stack",
           "type": "standard",
-          "title": "11 / 12 · VALUE STACKING",
+          "title": "12 / 12 · VALUE STACKING",
           "visual": {
             "h1": "MINIMIZE SPEND",
             "q": "Don't pay menu price.",
@@ -461,12 +468,6 @@
           "proof": {
             "ascii": "[ SAVINGS ]\nCoupon : -$4.00\nCAA    : -$1.50\nPoints : -$0.80"
           }
-        },
-        // 12. FINAL VERDICT
-        {
-          "id": "final",
-          "type": "final",
-          "title": "12 / 12 · ORDER TICKET"
         }
       ]
     };
@@ -491,7 +492,7 @@
     const TRIGGER_THRESHOLD = 0.9;
 
     function init() {
-        console.log("BOOTING SWIPE-OS v4.11...");
+        console.log("BOOTING SWIPE-OS v4.12...");
         
         CONFIG.slides.forEach((cfg, idx) => {
             const section = document.createElement('section');
@@ -568,10 +569,11 @@
                                 <div class="hero-section">
                                     <div class="hero-burger" id="hero-burger-name">ANGUS</div>
                                     <div class="hero-sub">FLAME-GRILLED</div>
+                                    
                                 </div>
                                 <div class="final-actions">
-                                    <button class="btn btn-wa" onclick="sendWhatsapp()">SAVE TICKET</button>
-                                    <button class="btn" onclick="location.reload()">RESET</button>
+                                    <button class="btn btn-wa" onclick="sendWhatsappTicket()">SAVE TICKET</button>
+                                    <button class="btn btn-support" onclick="sendSupport()">SUPPORT</button>
                                 </div>
                             </div>
                         </div>
@@ -596,7 +598,6 @@
         burgerName.innerText = USER_CART.burger;
 
         let html = '';
-        // Added 'timing' to the key list
         const keys = ['chicken', 'side', 'drink', 'timing', 'value']; 
         
         keys.forEach(k => {
@@ -611,9 +612,16 @@
         container.innerHTML = html;
     }
 
-    function sendWhatsapp() {
-        let msg = "MY HARVEY'S ORDER:\n";
+    // NEW: Clean Ticket (No Brand Name)
+    function sendWhatsappTicket() {
+        let msg = "ORDER TICKET:\n";
         Object.keys(USER_CART).forEach(k => msg += `- ${k.toUpperCase()}: ${USER_CART[k]}\n`);
+        window.open(`https://wa.me/916351537770?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    // NEW: Support Action
+    function sendSupport() {
+        const msg = "I needed assistance with my order flow. Thanks!. How can I Support";
         window.open(`https://wa.me/916351537770?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
@@ -622,7 +630,7 @@
 
         const curr = slideElements[currentIdx];
         curr.classList.remove('active', 'deck-active');
-        // If going forward, current becomes prev. If backward, current becomes next.
+        
         if (idx > currentIdx) {
             curr.classList.add('prev');
             curr.classList.remove('next');
@@ -637,7 +645,6 @@
         currentIdx = idx;
         const next = slideElements[currentIdx];
         
-        // Ensure proper stack order for new slide
         next.classList.remove('prev', 'next');
         next.classList.add('active');
 
@@ -721,9 +728,7 @@
                 const parentSlide = view.closest('.main-slide');
                 const isOptions = parentSlide.dataset.mode === 'options';
 
-                // Prevent swipe UP action during drag unless purely vertical
                 if(axis === 'y' && dy < 0) {
-                    // Logic handled in touchend
                     return; 
                 }
 
@@ -750,15 +755,13 @@
                 const parentSlide = view.closest('.main-slide');
                 const isOptions = parentSlide.dataset.mode === 'options';
 
-                // GLOBAL SWIPE UP (BACK)
                 if (axis === 'y' && dy < -60) {
                     if (currentIdx > 0) {
                         goToSlide(currentIdx - 1);
-                        return; // Exit handler
+                        return;
                     }
                 }
 
-                // SELECTOR LOGIC
                 if(isOptions) {
                     const key = view.dataset.key;
                     const total = parseInt(view.dataset.total);
@@ -784,7 +787,6 @@
                     
                     slides.forEach(s => s.style.transform = '');
 
-                    // Confirm Selection (Down)
                     if(axis === 'y' && dy > 60) {
                         if(!USER_CART[key]) USER_CART[key] = slides[view._deck.currOpt].dataset.val;
                         goToSlide(currentIdx + 1);
@@ -792,7 +794,6 @@
                     return;
                 }
 
-                // STANDARD LOGIC
                 if(axis === 'y' && dy > 0) {
                     if(dragRatio > TRIGGER_THRESHOLD) {
                         goToSlide(currentIdx + 1);
