@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Harvey's Decision Engine | SWIPE-OS v6.1 (Stable Core)</title>
+    <title>Harvey's Decision Engine | SWIPE-OS v6.2 (LLM Data)</title>
     <style>
         /* =========================================
            CORE SYSTEM (UNCHANGED)
@@ -355,9 +354,160 @@
 
 <script>
     /* =========================================
+       RAW LLM TRAINING DATA (INJECTED)
+       ========================================= */
+    const LLM_TRAINING_DATA = {
+      "app": {
+        "id": "FOOD-ALCHEMIST",
+        "version": "1.0.0",
+        "market": "INDIA",
+        "currency": "INR",
+        "timestamp_mode": "live",
+        "intent": "reduce_cognitive_load"
+      },
+      "user": {
+        "state": "anonymous",
+        "credits": {
+          "free": 10,
+          "bonus": 5,
+          "used": 0,
+          "locked_visibility_until_login": 2
+        },
+        "login": {
+          "required_after_credits": 2,
+          "methods": ["whatsapp", "otp"]
+        },
+        "preferences": {
+          "diet": null,
+          "spice": null,
+          "budget": null,
+          "repeat_tolerance": null
+        }
+      },
+      "menu": {
+        "region": "Punjabi",
+        "categories": [
+          {
+            "id": "main",
+            "name": "Main Items",
+            "items": [
+              { "id": "butter_chicken", "type": "non_veg", "price": 260 },
+              { "id": "paneer_butter_masala", "type": "veg", "price": 220 },
+              { "id": "chole_bhature", "type": "veg", "price": 180 }
+            ]
+          },
+          {
+            "id": "sides",
+            "name": "Sides",
+            "items": [
+              { "id": "butter_naan", "price": 40 },
+              { "id": "jeera_rice", "price": 120 }
+            ]
+          }
+        ]
+      },
+      "slides": [
+        {
+          "id": "item_selection",
+          "type": "selector",
+          "question": "What do you feel like eating right now?",
+          "mode": "horizontal_swipe",
+          "writes_to": "cart.main"
+        },
+        {
+          "id": "preference_1",
+          "type": "decision",
+          "question": "Is this comfort food or protein priority?",
+          "affects": ["routing", "restaurant_match"]
+        },
+        {
+          "id": "preference_2",
+          "type": "decision",
+          "question": "Eating alone or with others?",
+          "affects": ["portion", "platform"]
+        },
+        {
+          "id": "preference_3",
+          "type": "decision",
+          "question": "How much waiting is acceptable?",
+          "affects": ["online_vs_direct"]
+        },
+        {
+          "id": "llm_summary",
+          "type": "llm",
+          "input": ["cart", "preferences", "time", "availability"],
+          "output": ["recommendation_a", "recommendation_b"]
+        }
+      ],
+      "routing": {
+        "options": [
+          {
+            "id": "online",
+            "providers": ["zomato", "swiggy", "blinkit"],
+            "condition": "availability >= 1"
+          },
+          {
+            "id": "direct",
+            "method": "whatsapp",
+            "restaurant_number": true,
+            "condition": "restaurant_accepts_direct == true"
+          }
+        ],
+        "availability_logic": {
+          "count_live": true,
+          "display": "X_of_4_live"
+        }
+      },
+      "credits": {
+        "consume_on": "redirect_attempt",
+        "consume_even_if_failed": true,
+        "per_action": 1
+      },
+      "monetisation": {
+        "user_plans": [
+          {
+            "id": "trial",
+            "price": 0,
+            "credits": 15
+          },
+          {
+            "id": "quarterly",
+            "price": 1,
+            "duration_days": 90,
+            "credits": "unlimited"
+          }
+        ],
+        "restaurant_fees": {
+          "model": "support_fee",
+          "percentage": 3,
+          "alternative": "flat_monthly"
+        }
+      },
+      "final_slide": {
+        "cta": [
+          {
+            "id": "order_online",
+            "label": "Order via App",
+            "action": "redirect_online"
+          },
+          {
+            "id": "order_direct",
+            "label": "Order from Restaurant",
+            "action": "redirect_whatsapp"
+          },
+          {
+            "id": "customize_app",
+            "label": "Build this for my business",
+            "action": "contact_owner"
+          }
+        ]
+      }
+    };
+
+    /* =========================================
        0. SYSTEM STATE (PATCH 1 - CRASH FIXES)
        ========================================= */
-    let SES_BEACON_SENT = false; // Fix: Undefined state crash
+    let SES_BEACON_SENT = false; 
     let SENSORS_ENABLED = false;
     let CURRENT_SES_ID = 'HARV-' + Math.floor(Math.random() * 10000);
 
@@ -434,7 +584,7 @@
     const TRIGGER_THRESHOLD = 0.9;
 
     function init() {
-        console.log("BOOTING SWIPE-OS v6.1...");
+        console.log("BOOTING SWIPE-OS v6.2...");
         
         CONFIG.slides.forEach((cfg, idx) => {
             const section = document.createElement('section');
@@ -577,7 +727,6 @@
     /* =========================================
        LOGIC ENGINE (PATCH 5 - DATA ABSTRACTION)
        ========================================= */
-    // Helper to abstract data source for potential Gemini injection
     function getRenderData() {
         return USER_CART;
     }
@@ -622,7 +771,6 @@
 
     function sendWhatsappTicket() {
         if (!SES_BEACON_SENT) {
-            // Simulated telemetry beacon (PATCH 6)
             console.log("Telemetry sent for session: " + CURRENT_SES_ID);
             SES_BEACON_SENT = true;
         }
@@ -733,11 +881,13 @@
     }
 
     /* =========================================
-       LLM INTERFACE (PATCH 3)
+       LLM INTERFACE (PATCH 3 & 4)
        ========================================= */
     async function LLM_DECIDE(payload) {
         // Placeholder for Gemini integration
-        // Currently returns null to fallback to static logic
+        // Currently logs the potential payload
+        console.log("LLM_DECIDE Payload:", payload);
+        console.log("Using training data:", LLM_TRAINING_DATA);
         return null;
     }
 
@@ -778,7 +928,7 @@
             recognition.onresult = (e) => {
                 const txt = e.results[0][0].transcript.toLowerCase();
                 feedback.innerText = `HEARD: "${txt}"`;
-                setTimeout(() => processVoice(txt), 500); // Small delay for visual read
+                setTimeout(() => processVoice(txt), 500); 
             };
             recognition.start();
         }
@@ -803,7 +953,6 @@
             if (s.type === 'selector') {
                 Object.keys(s.options).forEach(optKey => {
                     const opt = s.options[optKey];
-                    // Check if any voice trigger exists in the command
                     if (opt.voice && opt.voice.some(v => cmd.includes(v))) {
                         
                         if (isRemove) {
@@ -816,14 +965,13 @@
                             showToast(`ADDED: ${optKey}`);
                         }
                         
-                        // Hot Reload Ticket if Visible
                         if(slideElements[currentIdx].id === 'final') updateResult();
                     }
                 });
             }
         });
 
-        // Optional LLM Hook (PATCH 4)
+        // LLM Hook
         LLM_DECIDE({
             session_id: CURRENT_SES_ID,
             command: cmd,
@@ -835,7 +983,6 @@
        TOUCH ENGINE (PATCH 2 - RECURSION FIX)
        ========================================= */
     function attachEvents() {
-        // Prevents re-attaching listeners if called multiple times
         if (container.dataset.listenersAttached) return;
         container.dataset.listenersAttached = "true";
 
@@ -943,11 +1090,10 @@
         });
     }
 
-    // PATCH 2: REQUEST SENSOR ACCESS (Replaces old recursive logic)
+    // PATCH 2: SENSOR HOOK (PLACEHOLDER)
     function requestSensorAccess() {
         if (SENSORS_ENABLED) return;
         SENSORS_ENABLED = true;
-        // Sensor logic would go here if needed in future
         console.log("Sensors initialized (Mouse/Touch hybrid)");
     }
 
