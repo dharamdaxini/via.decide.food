@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Harvey's Decision Engine | SWIPE-OS v4.13</title>
+    <title>Harvey's Decision Engine | SWIPE-OS v5.0 (Voice)</title>
     <style>
         /* =========================================
            CORE SYSTEM
@@ -208,7 +208,6 @@
             letter-spacing: 2px;
         }
 
-        /* Slide 13 Logo Placeholder */
         .brand-logo-placeholder {
             width: 80px;
             height: 80px;
@@ -242,7 +241,6 @@
             cursor: pointer;
         }
         .btn:active { transform: scale(0.98); }
-        
         .btn-wa { background: #25D366; color: #000; border: none; }
         .btn-support { background: transparent; border: 1px solid #444; color: #888; }
         .btn-share { background: var(--brand-orange); color: #fff; border: none; }
@@ -267,6 +265,57 @@
         }
         .toast-msg.visible { opacity: 1; }
 
+        /* =========================================
+           LISTEN MODE UI (v5.0)
+           ========================================= */
+        #mic-toggle {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            background: #222;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #444;
+            z-index: 1000;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        #mic-toggle svg { width: 24px; height: 24px; fill: #666; }
+        
+        #mic-toggle.listening {
+            border-color: var(--accent-go);
+            background: rgba(0, 230, 118, 0.1);
+            animation: pulse-mic 1.5s infinite;
+        }
+        #mic-toggle.listening svg { fill: var(--accent-go); }
+
+        @keyframes pulse-mic {
+            0% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 230, 118, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
+        }
+
+        #voice-feedback {
+            position: fixed;
+            bottom: 80px;
+            left: 20px;
+            font-family: var(--font-tech);
+            font-size: 0.75rem;
+            color: var(--accent-go);
+            background: rgba(0,0,0,0.8);
+            padding: 5px 10px;
+            border-radius: 4px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        #voice-feedback.visible { opacity: 1; }
+
     </style>
 </head>
 <body>
@@ -274,6 +323,11 @@
 <div id="master-container"></div>
 <div id="depth-fill"></div>
 <div id="toast" class="toast-msg">LINK COPIED TO CLIPBOARD</div>
+
+<div id="mic-toggle" onclick="toggleListenMode()">
+    <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+</div>
+<div id="voice-feedback">LISTENING...</div>
 
 <script>
     /* =========================================
@@ -504,7 +558,7 @@
             "ascii": "[ SAVINGS ]\nCoupon : -$4.00\nCAA    : -$1.50\nPoints : -$0.80"
           }
         },
-        // 13. BRAND END CARD (NEW)
+        // 13. BRAND END CARD
         {
           "id": "brand-end",
           "type": "brand",
@@ -585,6 +639,7 @@
                             <h1>${cfg.visual.h1}</h1>
                             <div class="primary-question">${cfg.visual.q}</div>
                             <div class="content-text">${cfg.visual.txt}</div>
+                            
                             <small style="color:#666; margin-top:30px; font-size:0.7rem;">&darr; Pull Down &darr;</small>
                         </div>
                         <div class="sub-slide layer-2" style="opacity:0;">
@@ -610,7 +665,8 @@
                                 <div class="hero-section">
                                     <div class="hero-burger" id="hero-burger-name">ANGUS</div>
                                     <div class="hero-sub">FLAME-GRILLED</div>
-                                                                    </div>
+                                    
+                                </div>
                                 <div class="final-actions">
                                     <button class="btn btn-wa" onclick="sendWhatsappTicket()">SAVE TICKET</button>
                                     <button class="btn btn-support" onclick="sendSupport()">SUPPORT</button>
@@ -635,7 +691,8 @@
                                     No heat lamps. No hidden kitchens. 
                                     Just you and the grill.
                                 </div>
-                                                                <div class="final-actions" style="margin-top:40px;">
+                                
+                                <div class="final-actions" style="margin-top:40px;">
                                     <button class="btn btn-share" onclick="copyLink()">SHARE THIS APP</button>
                                     <button class="btn" onclick="location.reload()">START OVER</button>
                                     <button class="btn btn-insta" onclick="followInsta()">FOLLOW ON INSTA</button>
@@ -677,7 +734,7 @@
         container.innerHTML = html;
     }
 
-    // Ticket Logic with Brand Header
+    // Save Ticket
     function sendWhatsappTicket() {
         let msg = "MY HARVEY'S ORDER:\n";
         Object.keys(USER_CART).forEach(k => msg += `- ${k.toUpperCase()}: ${USER_CART[k]}\n`);
@@ -694,15 +751,20 @@
     function copyLink() {
         const url = "https://dharamdaxini.github.io/via.decide.food/";
         navigator.clipboard.writeText(url).then(() => {
-            const t = document.getElementById('toast');
-            t.classList.add('visible');
-            setTimeout(() => t.classList.remove('visible'), 2000);
+            showToast('LINK COPIED TO CLIPBOARD');
         });
     }
 
     // Follow Insta Action
     function followInsta() {
         window.open('https://www.instagram.com/harveys?igsh=MWY0M3VyemQ2NHFjZw==', '_blank');
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.innerText = msg;
+        t.classList.add('visible');
+        setTimeout(() => t.classList.remove('visible'), 2000);
     }
 
     function goToSlide(idx) {
@@ -779,8 +841,75 @@
     }
 
     /* =========================================
-       TOUCH ENGINE
+       LISTEN MODE & TOUCH ENGINE
        ========================================= */
+    
+    // Listen Mode Toggle
+    let isListening = false;
+    let recognition;
+
+    function toggleListenMode() {
+        if (!('webkitSpeechRecognition' in window)) {
+            alert("Voice not supported in this browser.");
+            return;
+        }
+
+        const micBtn = document.getElementById('mic-toggle');
+        const feedback = document.getElementById('voice-feedback');
+
+        if (isListening) {
+            recognition.stop();
+            isListening = false;
+            micBtn.classList.remove('listening');
+            feedback.classList.remove('visible');
+        } else {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                isListening = true;
+                micBtn.classList.add('listening');
+                feedback.classList.add('visible');
+                feedback.innerText = "LISTENING...";
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
+                feedback.innerText = `HEARD: "${transcript}"`;
+                processVoiceCommand(transcript);
+            };
+
+            recognition.start();
+        }
+    }
+
+    function processVoiceCommand(cmd) {
+        // Navigation
+        if (cmd.includes("next")) goToSlide(currentIdx + 1);
+        if (cmd.includes("back") || cmd.includes("previous")) goToSlide(currentIdx - 1);
+        if (cmd.includes("start over") || cmd.includes("reset")) location.reload();
+
+        // Selection Logic (Simplified Mapping)
+        if (cmd.includes("original")) selectOption('burger', 'ORIGINAL');
+        if (cmd.includes("angus")) selectOption('burger', 'ANGUS');
+        if (cmd.includes("veggie")) selectOption('burger', 'VEGGIE');
+        
+        if (cmd.includes("crispy")) selectOption('chicken', 'CRISPY');
+        if (cmd.includes("grilled")) selectOption('chicken', 'GRILLED');
+        
+        if (cmd.includes("save") || cmd.includes("ticket")) sendWhatsappTicket();
+        if (cmd.includes("support")) sendSupport();
+    }
+
+    function selectOption(category, value) {
+        USER_CART[category] = value;
+        showToast(`SELECTED: ${value}`);
+        // Optional: auto-advance
+        // goToSlide(currentIdx + 1); 
+    }
+
     function attachEvents() {
         let startX = 0, startY = 0;
 
@@ -808,9 +937,7 @@
                 const parentSlide = view.closest('.main-slide');
                 const isOptions = parentSlide.dataset.mode === 'options';
 
-                if(axis === 'y' && dy < 0) {
-                    return; 
-                }
+                if(axis === 'y' && dy < 0) return; 
 
                 if(isOptions) {
                     if(axis === 'x') slides.forEach(s => s.style.transform = `translateX(${dx}px)`);
