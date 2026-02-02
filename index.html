@@ -1,345 +1,351 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Harvey's Decision Engine | SWIPE-OS v6.0 (B2B Module)</title>
-    <style>
-        /* =========================================
-           CORE SYSTEM (UNCHANGED)
-           ========================================= */
-        :root {
-            --brand-orange: #ff671f;
-            --brand-bg: #0a0a0a;
-            --text-main: #f0f0f0;
-            --accent-go: #00e676; 
-            --font-tech: 'Courier New', monospace;
-            --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Universal Decision Engine | SWIPE-OS v7.0 (Generic Backend)</title>
+<style>
+/* =========================================
+CORE SYSTEM
+========================================= */
+:root {
+/* DYNAMIC THEME VARIABLES (Defaults) */
+--brand-primary: #ff671f;
+--brand-bg: #0a0a0a;
+--text-main: #f0f0f0;
+--accent-go: #00e676;
+--font-tech: 'Courier New', monospace;
+--font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
 
-        html, body {
-            margin: 0; padding: 0; height: 100%; width: 100%;
-            background-color: var(--brand-bg);
-            color: var(--text-main);
-            font-family: var(--font-ui);
-            overflow: hidden;
-        }
+```
+    html, body {
+        margin: 0; padding: 0; height: 100%; width: 100%;
+        background-color: var(--brand-bg);
+        color: var(--text-main);
+        font-family: var(--font-ui);
+        overflow: hidden;
+        transition: background-color 0.5s ease;
+    }
 
-        #master-container {
-            height: 100vh;
-            width: 100vw;
-            position: relative;
-            overflow: hidden;
-        }
+    #master-container {
+        height: 100vh;
+        width: 100vw;
+        position: relative;
+        overflow: hidden;
+    }
 
-        .main-slide {
-            height: 100vh;
-            width: 100vw;
-            position: absolute;
-            top: 0;
-            left: 0;
-            display: flex;
-            flex-direction: column;
-            background: var(--brand-bg);
-            transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
-            will-change: transform;
-        }
+    .main-slide {
+        height: 100vh;
+        width: 100vw;
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: flex;
+        flex-direction: column;
+        background: var(--brand-bg);
+        transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+        will-change: transform;
+    }
 
-        .main-slide.prev { transform: translateY(-100%); }
-        .main-slide.active { transform: translateY(0); z-index: 10; }
-        .main-slide.next { transform: translateY(100%); z-index: 20; }
+    .main-slide.prev { transform: translateY(-100%); }
+    .main-slide.active { transform: translateY(0); z-index: 10; }
+    .main-slide.next { transform: translateY(100%); z-index: 20; }
 
-        .slide-header {
-            padding: 20px;
-            border-left: 3px solid var(--brand-orange);
-            height: 70px;
-            flex-shrink: 0;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            transition: opacity 0.3s;
-        }
-        
-        .main-slide.deck-active .slide-header { opacity: 0.2; }
-        .main-slide.deck-active { background: #000; }
+    .slide-header {
+        padding: 20px;
+        border-left: 3px solid var(--brand-primary);
+        height: 70px;
+        flex-shrink: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        transition: opacity 0.3s;
+    }
+    
+    .main-slide.deck-active .slide-header { opacity: 0.2; }
+    .main-slide.deck-active { background: #000; }
 
-        .header-title {
-            font-family: var(--font-tech);
-            font-size: 0.75rem;
-            color: var(--brand-orange);
-            letter-spacing: 1px;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
+    .header-title {
+        font-family: var(--font-tech);
+        font-size: 0.75rem;
+        color: var(--brand-primary);
+        letter-spacing: 1px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
 
-        /* =========================================
-           CONTENT DECK
-           ========================================= */
-        .carousel-viewport {
-            position: relative;
-            flex-grow: 1;
-            width: 100%;
-            touch-action: none;
-        }
+    /* =========================================
+       CONTENT DECK
+       ========================================= */
+    .carousel-viewport {
+        position: relative;
+        flex-grow: 1;
+        width: 100%;
+        touch-action: none;
+    }
 
-        .sub-slide {
-            position: absolute;
-            inset: 0;
-            padding: 25px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            opacity: 0;
-            pointer-events: none;
-            transform: translateY(0) scale(1);
-            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease;
-        }
+    .sub-slide {
+        position: absolute;
+        inset: 0;
+        padding: 25px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(0) scale(1);
+        transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease;
+    }
 
-        .sub-slide.layer-1 { z-index: 30; opacity: 1; pointer-events: auto; }
-        .sub-slide.layer-2 { z-index: 20; }
-        .sub-slide.layer-3 { z-index: 10; }
-        .sub-slide.opt-active { z-index: 30; opacity: 1; pointer-events: auto; transform: translateX(0); }
-        .sub-slide.opt-hidden { z-index: 0; opacity: 0; pointer-events: none; }
+    .sub-slide.layer-1 { z-index: 30; opacity: 1; pointer-events: auto; }
+    .sub-slide.layer-2 { z-index: 20; }
+    .sub-slide.layer-3 { z-index: 10; }
+    .sub-slide.opt-active { z-index: 30; opacity: 1; pointer-events: auto; transform: translateX(0); }
+    .sub-slide.opt-hidden { z-index: 0; opacity: 0; pointer-events: none; }
 
-        h1 { font-size: 1.8rem; margin: 0 0 15px 0; line-height: 1; letter-spacing: -1px; color: var(--brand-orange); }
-        .primary-question { font-size: 1.1rem; color: #fff; margin-bottom: 25px; line-height: 1.4; font-weight: 600; }
-        .content-text { font-size: 0.9rem; color: #aaa; line-height: 1.6; max-height: 40vh; overflow-y: auto; }
+    h1 { font-size: 1.8rem; margin: 0 0 15px 0; line-height: 1; letter-spacing: -1px; color: var(--brand-primary); }
+    .primary-question { font-size: 1.1rem; color: #fff; margin-bottom: 25px; line-height: 1.4; font-weight: 600; }
+    .content-text { font-size: 0.9rem; color: #aaa; line-height: 1.6; max-height: 40vh; overflow-y: auto; }
 
-        .item-list { list-style: none; padding: 0; margin-top: 10px; }
-        .item-list li { padding: 6px 0; border-bottom: 1px solid #222; font-size: 0.85rem; color: #ccc; }
-        .item-list li:before { content: "• "; color: var(--brand-orange); }
+    .item-list { list-style: none; padding: 0; margin-top: 10px; }
+    .item-list li { padding: 6px 0; border-bottom: 1px solid #222; font-size: 0.85rem; color: #ccc; }
+    .item-list li:before { content: "• "; color: var(--brand-primary); }
 
-        .role-label {
-            font-family: var(--font-tech);
-            font-size: 0.6rem;
-            color: #000;
-            background: var(--accent-go);
-            padding: 4px 8px;
-            border-radius: 4px;
-            width: fit-content;
-            margin-bottom: 15px;
-            font-weight: bold;
-        }
+    .role-label {
+        font-family: var(--font-tech);
+        font-size: 0.6rem;
+        color: #000;
+        background: var(--accent-go);
+        padding: 4px 8px;
+        border-radius: 4px;
+        width: fit-content;
+        margin-bottom: 15px;
+        font-weight: bold;
+    }
 
-        .nav-hint {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #333;
-            font-family: var(--font-tech);
-            font-size: 0.7rem;
-            color: #666;
-            display: flex;
-            justify-content: space-between;
-        }
+    .nav-hint {
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #333;
+        font-family: var(--font-tech);
+        font-size: 0.7rem;
+        color: #666;
+        display: flex;
+        justify-content: space-between;
+    }
 
-        .ascii-box {
-            background: #080808;
-            border: 1px solid #333;
-            color: var(--accent-go);
-            font-family: var(--font-tech);
-            font-size: 0.75rem;
-            padding: 15px;
-            border-radius: 6px;
-            white-space: pre;
-            line-height: 1.2;
-            margin-top: 20px;
-        }
+    .ascii-box {
+        background: #080808;
+        border: 1px solid #333;
+        color: var(--accent-go);
+        font-family: var(--font-tech);
+        font-size: 0.75rem;
+        padding: 15px;
+        border-radius: 6px;
+        white-space: pre;
+        line-height: 1.2;
+        margin-top: 20px;
+    }
 
-        /* =========================================
-           VERDICT REDESIGN
-           ========================================= */
-        .verdict-container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            justify-content: center;
-        }
+    /* =========================================
+       VERDICT REDESIGN
+       ========================================= */
+    .verdict-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        justify-content: center;
+    }
 
-        .choice-header {
-            font-family: var(--font-tech);
-            color: #666;
-            font-size: 0.8rem;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-align: center;
-        }
+    .choice-header {
+        font-family: var(--font-tech);
+        color: #666;
+        font-size: 0.8rem;
+        margin-bottom: 20px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-align: center;
+    }
 
-        .input-group {
-            border: 1px solid #333;
-            background: #111;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 40px;
-            min-height: 100px;
-        }
+    .input-group {
+        border: 1px solid #333;
+        background: #111;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 40px;
+        min-height: 100px;
+    }
 
-        .input-row {
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px dashed #333;
-            padding: 10px 0;
-            font-family: var(--font-tech);
-            font-size: 0.8rem;
-            animation: fadeInRow 0.3s ease;
-        }
-        @keyframes fadeInRow { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
-        
-        .input-row:last-child { border-bottom: none; }
-        
-        .input-key { color: #888; text-transform: uppercase; }
-        .input-val { color: var(--accent-go); font-weight: bold; text-align: right; }
+    .input-row {
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px dashed #333;
+        padding: 10px 0;
+        font-family: var(--font-tech);
+        font-size: 0.8rem;
+        animation: fadeInRow 0.3s ease;
+    }
+    @keyframes fadeInRow { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+    
+    .input-row:last-child { border-bottom: none; }
+    
+    .input-key { color: #888; text-transform: uppercase; }
+    .input-val { color: var(--accent-go); font-weight: bold; text-align: right; }
 
-        .hero-section {
-            text-align: center;
-            margin-bottom: 40px;
-        }
+    .hero-section {
+        text-align: center;
+        margin-bottom: 40px;
+    }
 
-        .hero-burger {
-            font-size: 3rem;
-            font-weight: 900;
-            line-height: 1;
-            text-transform: uppercase;
-            color: #fff;
-            margin-bottom: 5px;
-            letter-spacing: -2px;
-        }
-        
-        .hero-sub {
-            font-family: var(--font-tech);
-            color: var(--brand-orange);
-            font-size: 0.8rem;
-            letter-spacing: 2px;
-        }
+    .hero-burger {
+        font-size: 3rem;
+        font-weight: 900;
+        line-height: 1;
+        text-transform: uppercase;
+        color: #fff;
+        margin-bottom: 5px;
+        letter-spacing: -2px;
+    }
+    
+    .hero-sub {
+        font-family: var(--font-tech);
+        color: var(--brand-primary);
+        font-size: 0.8rem;
+        letter-spacing: 2px;
+    }
 
-        .brand-logo-placeholder {
-            width: 80px;
-            height: 80px;
-            background: #222;
-            border-radius: 50%;
-            margin: 0 auto 20px auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid var(--brand-orange);
-            color: var(--brand-orange);
-            font-weight: 900;
-            font-size: 1.5rem;
-        }
+    .brand-logo-placeholder {
+        width: 80px;
+        height: 80px;
+        background: #222;
+        border-radius: 50%;
+        margin: 0 auto 20px auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid var(--brand-primary);
+        color: var(--brand-primary);
+        font-weight: 900;
+        font-size: 1.5rem;
+    }
 
-        .final-actions {
-            display: grid;
-            gap: 12px;
-            margin-top: auto;
-        }
-        .btn {
-            background: #222;
-            color: #fff;
-            border: 1px solid #333;
-            padding: 18px;
-            width: 100%;
-            border-radius: 8px;
-            font-weight: 600;
-            text-align: center;
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
-        .btn:active { transform: scale(0.98); }
-        .btn-wa { background: #25D366; color: #000; border: none; }
-        .btn-support { background: transparent; border: 1px solid #444; color: #888; }
-        .btn-share { background: var(--brand-orange); color: #fff; border: none; }
-        .btn-insta { 
-            background: linear-gradient(45deg, #405de6, #5851db, #833ab4, #c13584, #e1306c, #fd1d1d);
-            color: white; border: none;
-        }
+    .final-actions {
+        display: grid;
+        gap: 12px;
+        margin-top: auto;
+    }
+    .btn {
+        background: #222;
+        color: #fff;
+        border: 1px solid #333;
+        padding: 18px;
+        width: 100%;
+        border-radius: 8px;
+        font-weight: 600;
+        text-align: center;
+        font-size: 0.9rem;
+        cursor: pointer;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-wa { background: #25D366; color: #000; border: none; }
+    .btn-support { background: transparent; border: 1px solid #444; color: #888; }
+    .btn-share { background: var(--brand-primary); color: #fff; border: none; }
+    .btn-insta { 
+        background: linear-gradient(45deg, #405de6, #5851db, #833ab4, #c13584, #e1306c, #fd1d1d);
+        color: white; border: none;
+    }
 
-        #depth-fill {
-            position: fixed; right: 0; top: 0; bottom: 0; width: 4px;
-            background: #333; z-index: 900;
-            height: 0%; transition: height 0.05s linear, background 0.3s;
-        }
+    #depth-fill {
+        position: fixed; right: 0; top: 0; bottom: 0; width: 4px;
+        background: #333; z-index: 900;
+        height: 0%; transition: height 0.05s linear, background 0.3s;
+    }
 
-        /* Toast for copy feedback */
-        .toast-msg {
-            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
-            background: #222; color: #00e676; padding: 12px 24px;
-            border: 1px solid #00e676;
-            border-radius: 30px; font-size: 0.8rem; opacity: 0; pointer-events: none;
-            transition: opacity 0.3s; z-index: 2500; font-family: var(--font-tech);
-            white-space: nowrap;
-        }
-        .toast-msg.visible { opacity: 1; }
+    /* Toast for copy feedback */
+    .toast-msg {
+        position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+        background: #222; color: #00e676; padding: 12px 24px;
+        border: 1px solid #00e676;
+        border-radius: 30px; font-size: 0.8rem; opacity: 0; pointer-events: none;
+        transition: opacity 0.3s; z-index: 2500; font-family: var(--font-tech);
+        white-space: nowrap;
+    }
+    .toast-msg.visible { opacity: 1; }
 
-        /* =========================================
-           LISTEN MODE UI
-           ========================================= */
-        #mic-toggle {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            width: 60px;
-            height: 60px;
-            background: #111;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid #444;
-            z-index: 2000;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        }
-        #mic-toggle svg { width: 28px; height: 28px; fill: #666; transition: fill 0.3s; }
-        
-        #mic-toggle.listening {
-            border-color: var(--accent-go);
-            background: rgba(0, 230, 118, 0.15);
-            animation: pulse-mic 1.5s infinite;
-        }
-        #mic-toggle.listening svg { fill: var(--accent-go); }
+    /* =========================================
+       LISTEN MODE UI
+       ========================================= */
+    #mic-toggle {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        width: 60px;
+        height: 60px;
+        background: #111;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #444;
+        z-index: 2000;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+    #mic-toggle svg { width: 28px; height: 28px; fill: #666; transition: fill 0.3s; }
+    
+    #mic-toggle.listening {
+        border-color: var(--accent-go);
+        background: rgba(0, 230, 118, 0.15);
+        animation: pulse-mic 1.5s infinite;
+    }
+    #mic-toggle.listening svg { fill: var(--accent-go); }
 
-        @keyframes pulse-mic {
-            0% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.4); }
-            70% { box-shadow: 0 0 0 15px rgba(0, 230, 118, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
-        }
+    @keyframes pulse-mic {
+        0% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.4); }
+        70% { box-shadow: 0 0 0 15px rgba(0, 230, 118, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
+    }
 
-        #voice-feedback {
-            position: fixed;
-            bottom: 30px;
-            left: 90px;
-            font-family: var(--font-tech);
-            font-size: 0.8rem;
-            color: #fff;
-            background: rgba(0,0,0,0.7);
-            padding: 8px 12px;
-            border-radius: 4px;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-            z-index: 2000;
-            border-left: 2px solid var(--accent-go);
-        }
-        #voice-feedback.visible { opacity: 1; }
+    #voice-feedback {
+        position: fixed;
+        bottom: 30px;
+        left: 90px;
+        font-family: var(--font-tech);
+        font-size: 0.8rem;
+        color: #fff;
+        background: rgba(0,0,0,0.7);
+        padding: 8px 12px;
+        border-radius: 4px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+        z-index: 2000;
+        border-left: 2px solid var(--accent-go);
+    }
+    #voice-feedback.visible { opacity: 1; }
 
-        /* B2B Typography */
-        .b2b-highlight {
-            font-size: 2.5rem;
-            line-height: 1.2;
-            color: #fff;
-            font-weight: 300;
-            margin: 20px 0;
-        }
-        .b2b-bold {
-            color: var(--brand-orange);
-            font-weight: 900;
-            letter-spacing: 2px;
-            display: block;
-            font-size: 3rem;
-        }
+    .b2b-highlight {
+        font-size: 2.5rem;
+        line-height: 1.2;
+        color: #fff;
+        font-weight: 300;
+        margin: 20px 0;
+    }
+    .b2b-bold {
+        color: var(--brand-primary);
+        font-weight: 900;
+        letter-spacing: 2px;
+        display: block;
+        font-size: 3rem;
+    }
 
-    </style>
+</style>
+
+```
+
 </head>
 <body>
 
@@ -348,561 +354,597 @@
 <div id="toast" class="toast-msg">ACTION CONFIRMED</div>
 
 <div id="mic-toggle" onclick="toggleListenMode()">
-    <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+<svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
 </div>
 <div id="voice-feedback">LISTENING...</div>
 
 <script>
-    /* =========================================
-       CONFIG: HARVEY'S 2026 MENU (TRAINED)
-       ========================================= */
-    const CONFIG = {
-      "slides": [
-        {
-          "id": "burger", "type": "selector", "title": "01 / 14 · BURGERS", "key": "burger",
-          "options": {
-            "ORIGINAL": { "items": ["Original Burger"], "tag": "NOSTALGIA", "voice": ["original", "classic", "standard"] },
-            "ANGUS": { "items": ["Angus Burger"], "tag": "QUALITY", "voice": ["angus", "premium", "beef", "steak"] },
-            "VEGGIE": { "items": ["Veggie Burger"], "tag": "PLANT", "voice": ["veggie", "plant", "vegetarian"] }
-          }
-        },
-        {
-          "id": "chicken", "type": "selector", "title": "02 / 14 · CHICKEN", "key": "chicken",
-          "options": {
-            "CRISPY": { "items": ["Crispy Sandwich"], "tag": "TEXTURE", "voice": ["crispy", "fried chicken"] },
-            "GRILLED": { "items": ["Grilled Sandwich"], "tag": "HEALTH", "voice": ["grilled", "healthy"] },
-            "BUFFALO": { "items": ["Buffalo Sandwich"], "tag": "SPICY", "voice": ["buffalo", "spicy"] }
-          }
-        },
-        {
-          "id": "sides", "type": "selector", "title": "03 / 14 · SIDES", "key": "side",
-          "options": {
-            "POUTINE": { "items": ["Classic Poutine"], "tag": "COMFORT", "voice": ["poutine", "gravy"] },
-            "SIDES": { "items": ["Frings"], "tag": "CLASSIC", "voice": ["sides", "fries", "rings", "frings", "pickles"] }
-          }
-        },
-        {
-          "id": "value", "type": "selector", "title": "04 / 14 · VALUE", "key": "value",
-          "options": {
-            "JR_BURGERS": { "items": ["Jr. Burger"], "tag": "BUDGET", "voice": ["junior", "jr burger"] },
-            "SNACKS": { "items": ["Nuggets"], "tag": "QUICK", "voice": ["nuggets", "bites", "chicken bits"] },
-            "DESSERTS": { "items": ["Donuts"], "tag": "SWEET", "voice": ["dessert", "donut", "pie", "apple pie", "sweet"] }
-          }
-        },
-        {
-          "id": "drinks", "type": "selector", "title": "05 / 14 · DRINKS", "key": "drink",
-          "options": {
-            "SHAKES": { "items": ["Chocolate Shake"], "tag": "DESSERT", "voice": ["shake", "milkshake", "chocolate", "vanilla", "strawberry"] },
-            "FROZEN": { "items": ["Slushie"], "tag": "ENERGY", "voice": ["frozen", "slushie", "red bull", "slush"] },
-            "STANDARD": { "items": ["Pepsi"], "tag": "BASIC", "voice": ["drink", "soda", "pop", "coke", "pepsi", "coffee", "tea"] }
-          }
-        },
-        { "id": "final", "type": "final", "title": "06 / 14 · ORDER TICKET" },
-        // Logic Slides
-        { "id": "hunger", "type": "standard", "title": "07 / 14 · HUNGER", "visual": { "h1": "HOW HUNGRY?", "q": "Calibrating protein.", "txt": "High hunger favors Angus." }, "logic": { "txt": "Angus is 100% beef." }, "proof": { "ascii": "[ SATIETY ]" } },
-        { "id": "timing", "type": "selector", "title": "08 / 14 · TIMING", "key": "timing", "options": { "OFF-PEAK": { "items": ["After 2PM"], "tag": "SMART", "voice": ["off peak", "quiet", "late"] }, "PEAK": { "items": ["Lunch Rush"], "tag": "RISKY", "voice": ["peak", "rush", "busy"] } } },
-        { "id": "consistency", "type": "standard", "title": "09 / 14 · CONSISTENCY", "visual": { "h1": "EXECUTION RISK", "q": "Tolerate variance?", "txt": "Depends on staff." }, "logic": { "txt": "Human scooping has variance." }, "proof": { "ascii": "[ VARIANCE ]" } },
-        { "id": "patty-logic", "type": "standard", "title": "10 / 14 · PATTY LOGIC", "visual": { "h1": "TEXTURE", "q": "Mouthfeel?", "txt": "Original is softer." }, "logic": { "txt": "Angus holds toppings better." }, "proof": { "ascii": "[ DENSITY ]" } },
-        { "id": "method", "type": "standard", "title": "11 / 14 · THE RITUAL", "visual": { "h1": "GARNISH CONTROL", "q": "Why Harvey’s?", "txt": "Live assembly." }, "logic": { "txt": "Open counters force accountability." }, "proof": { "ascii": "[ ERRORS ]" } },
-        { "id": "value-stack", "type": "standard", "title": "12 / 14 · STACKING", "visual": { "h1": "MINIMIZE SPEND", "q": "Don't pay full price.", "txt": "Use Coupons." }, "logic": { "txt": "Coupon > CAA > Points." }, "proof": { "ascii": "[ SAVINGS ]" } },
-        // End Card
-        { "id": "brand-end", "type": "brand", "title": "13 / 14 · NATIONAL CHAMPION" },
-        // B2B Card
-        { "id": "b2b", "type": "contact", "title": "14 / 14 · BUSINESS INQUIRY" }
-      ]
-    };
+/* =========================================
+DATA BACKEND: REPLACE THIS JSON BLOCK
+TO DROP IN ANY RESTAURANT / BRAND
+========================================= */
+const DEFAULT_CONFIG = {
+"meta": {
+"brandName": "HARVEY'S",
+"primaryColor": "#ff671f",
+"bgColor": "#0a0a0a",
+"accentColor": "#00e676",
+"supportPhone": "916351537770",
+"brandUrl": "[https://harveys.ca](https://harveys.ca)",
+"instaUrl": "[https://instagram.com/harveys](https://www.google.com/search?q=https://instagram.com/harveys)"
+},
+"slides": [
+{
+"id": "burger", "type": "selector", "title": "01 · PRIMARY", "key": "burger", "role": "hero",
+"options": {
+"ORIGINAL": { "items": ["Original Burger"], "tag": "NOSTALGIA", "voice": ["original", "classic", "standard"] },
+"ANGUS": { "items": ["Angus Burger"], "tag": "QUALITY", "voice": ["angus", "premium", "beef", "steak"] },
+"VEGGIE": { "items": ["Veggie Burger"], "tag": "PLANT", "voice": ["veggie", "plant", "vegetarian"] }
+}
+},
+{
+"id": "chicken", "type": "selector", "title": "02 · SECONDARY", "key": "chicken",
+"options": {
+"CRISPY": { "items": ["Crispy Sandwich"], "tag": "TEXTURE", "voice": ["crispy", "fried chicken"] },
+"GRILLED": { "items": ["Grilled Sandwich"], "tag": "HEALTH", "voice": ["grilled", "healthy"] },
+"BUFFALO": { "items": ["Buffalo Sandwich"], "tag": "SPICY", "voice": ["buffalo", "spicy"] }
+}
+},
+{
+"id": "sides", "type": "selector", "title": "03 · SIDES", "key": "side",
+"options": {
+"POUTINE": { "items": ["Classic Poutine"], "tag": "COMFORT", "voice": ["poutine", "gravy"] },
+"SIDES": { "items": ["Frings"], "tag": "CLASSIC", "voice": ["sides", "fries", "rings", "frings", "pickles"] }
+}
+},
+{
+"id": "value", "type": "selector", "title": "04 · VALUE", "key": "value",
+"options": {
+"JR_BURGERS": { "items": ["Jr. Burger"], "tag": "BUDGET", "voice": ["junior", "jr burger"] },
+"SNACKS": { "items": ["Nuggets"], "tag": "QUICK", "voice": ["nuggets", "bites", "chicken bits"] },
+"DESSERTS": { "items": ["Donuts"], "tag": "SWEET", "voice": ["dessert", "donut", "pie", "apple pie", "sweet"] }
+}
+},
+{
+"id": "drinks", "type": "selector", "title": "05 · DRINKS", "key": "drink",
+"options": {
+"SHAKES": { "items": ["Chocolate Shake"], "tag": "DESSERT", "voice": ["shake", "milkshake", "chocolate", "vanilla", "strawberry"] },
+"FROZEN": { "items": ["Slushie"], "tag": "ENERGY", "voice": ["frozen", "slushie", "red bull", "slush"] },
+"STANDARD": { "items": ["Pepsi"], "tag": "BASIC", "voice": ["drink", "soda", "pop", "coke", "pepsi", "coffee", "tea"] }
+}
+},
+{ "id": "final", "type": "final", "title": "06 · ORDER TICKET" },
+// Logic Slides
+{ "id": "hunger", "type": "standard", "title": "07 · HUNGER", "visual": { "h1": "HOW HUNGRY?", "q": "Calibrating protein.", "txt": "High hunger favors Angus." }, "logic": { "txt": "Angus is 100% beef." }, "proof": { "ascii": "[ SATIETY ]" } },
+{ "id": "timing", "type": "selector", "title": "08 · TIMING", "key": "timing", "options": { "OFF-PEAK": { "items": ["After 2PM"], "tag": "SMART", "voice": ["off peak", "quiet", "late"] }, "PEAK": { "items": ["Lunch Rush"], "tag": "RISKY", "voice": ["peak", "rush", "busy"] } } },
+{ "id": "brand-end", "type": "brand", "title": "BRAND STORY" },
+{ "id": "b2b", "type": "contact", "title": "BUSINESS" }
+]
+};
 
-    /* =========================================
-       STATE & BUILDER
-       ========================================= */
-    let USER_CART = {}; // START EMPTY
+```
+/* =========================================
+   ENGINE BOOTSTRAP
+   ========================================= */
+let CURRENT_DATA = null;
+let USER_CART = {}; 
+const container = document.getElementById(&#39;master-container&#39;);
+let slideElements = [];
+let currentIdx = 0;
+let dragRatio = 0;
+const MAX_DRAG = 300; 
+const TRIGGER_THRESHOLD = 0.9;
 
-    const container = document.getElementById('master-container');
-    let slideElements = [];
-    let currentIdx = 0;
-    let dragRatio = 0;
-    const MAX_DRAG = 300; 
-    const TRIGGER_THRESHOLD = 0.9;
+function init(configData) {
+    CURRENT_DATA = configData || DEFAULT_CONFIG;
+    console.log(&quot;BOOTING SWIPE-OS v7.0 with:&quot;, CURRENT_DATA.meta.brandName);
+    
+    // 1. APPLY THEME
+    const root = document.documentElement;
+    if(CURRENT_DATA.meta.primaryColor) root.style.setProperty(&#39;--brand-primary&#39;, CURRENT_DATA.meta.primaryColor);
+    if(CURRENT_DATA.meta.bgColor) root.style.setProperty(&#39;--brand-bg&#39;, CURRENT_DATA.meta.bgColor);
+    if(CURRENT_DATA.meta.accentColor) root.style.setProperty(&#39;--accent-go&#39;, CURRENT_DATA.meta.accentColor);
 
-    function init() {
-        console.log("BOOTING SWIPE-OS v6.0...");
-        
-        CONFIG.slides.forEach((cfg, idx) => {
-            const section = document.createElement('section');
-            section.className = `main-slide ${idx === 0 ? 'active' : 'next'}`;
-            section.id = cfg.id;
-            section.dataset.mode = cfg.type === 'selector' ? 'options' : 'standard';
+    // 2. BUILD SLIDES
+    CURRENT_DATA.slides.forEach((cfg, idx) =&gt; {
+        const section = document.createElement(&#39;section&#39;);
+        section.className = `main-slide ${idx === 0 ? &#39;active&#39; : &#39;next&#39;}`;
+        section.id = cfg.id;
+        section.dataset.mode = cfg.type === &#39;selector&#39; ? &#39;options&#39; : &#39;standard&#39;;
 
-            let content = '';
+        let content = &#39;&#39;;
 
-            if (cfg.type === 'selector') {
-                let optionsHTML = '';
-                const keys = Object.keys(cfg.options);
-                
-                keys.forEach((k, kIdx) => {
-                    const opt = cfg.options[k];
-                    const itemsList = opt.items.map(i => `<li>${i}</li>`).join('');
-                    const prevText = kIdx > 0 ? `&larr; ${keys[kIdx-1]}` : '';
-                    const nextText = kIdx < keys.length - 1 ? `${keys[kIdx+1]} &rarr;` : '';
+        // --- BUILDER: SELECTOR TYPE ---
+        if (cfg.type === &#39;selector&#39;) {
+            let optionsHTML = &#39;&#39;;
+            const keys = Object.keys(cfg.options);
+            
+            keys.forEach((k, kIdx) =&gt; {
+                const opt = cfg.options[k];
+                const itemsList = opt.items.map(i =&gt; `&lt;li&gt;${i}&lt;/li&gt;`).join(&#39;&#39;);
+                const prevText = kIdx &gt; 0 ? `&amp;larr; ${keys[kIdx-1]}` : &#39;&#39;;
+                const nextText = kIdx &lt; keys.length - 1 ? `${keys[kIdx+1]} &amp;rarr;` : &#39;&#39;;
 
-                    optionsHTML += `
-                        <div class="sub-slide ${kIdx===0 ? 'opt-active' : 'opt-hidden'}" data-opt-idx="${kIdx}" data-val="${k}">
-                            <div class="role-label">${opt.tag}</div>
-                            <h1>${k}</h1>
-                            <div class="primary-question">${opt.note || 'Select Option'}</div>
-                            <div class="content-text">
-                                <ul class="item-list">${itemsList}</ul>
-                            </div>
-                            <div class="nav-hint">
-                                <span style="flex:1; text-align:left;">${prevText}</span>
-                                <span style="flex:2; text-align:center; color:#fff; font-weight:bold;">&darr; PULL TO SELECT &darr;</span>
-                                <span style="flex:1; text-align:right;">${nextText}</span>
-                            </div>
-                        </div>
-                    `;
-                });
+                optionsHTML += `
+                    &lt;div class=&quot;sub-slide ${kIdx===0 ? &#39;opt-active&#39; : &#39;opt-hidden&#39;}&quot; data-opt-idx=&quot;${kIdx}&quot; data-val=&quot;${k}&quot;&gt;
+                        &lt;div class=&quot;role-label&quot;&gt;${opt.tag}&lt;/div&gt;
+                        &lt;h1&gt;${k}&lt;/h1&gt;
+                        &lt;div class=&quot;primary-question&quot;&gt;${opt.note || &#39;Select Option&#39;}&lt;/div&gt;
+                        &lt;div class=&quot;content-text&quot;&gt;
+                            &lt;ul class=&quot;item-list&quot;&gt;${itemsList}&lt;/ul&gt;
+                        &lt;/div&gt;
+                        &lt;div class=&quot;nav-hint&quot;&gt;
+                            &lt;span style=&quot;flex:1; text-align:left;&quot;&gt;${prevText}&lt;/span&gt;
+                            &lt;span style=&quot;flex:2; text-align:center; color:#fff; font-weight:bold;&quot;&gt;&amp;darr; PULL TO SELECT &amp;darr;&lt;/span&gt;
+                            &lt;span style=&quot;flex:1; text-align:right;&quot;&gt;${nextText}&lt;/span&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                `;
+            });
 
-                content = `
-                    <div class="slide-header"><span class="header-title">${cfg.title}</span></div>
-                    <div class="carousel-viewport" data-key="${cfg.key}" data-total="${keys.length}">
-                        ${optionsHTML}
-                    </div>`;
-            }
-
-            else if (cfg.type === 'standard') {
-                content = `
-                    <div class="slide-header"><span class="header-title">${cfg.title}</span></div>
-                    <div class="carousel-viewport">
-                        <div class="sub-slide layer-1">
-                            <h1>${cfg.visual.h1}</h1>
-                            <div class="primary-question">${cfg.visual.q}</div>
-                            <div class="content-text">${cfg.visual.txt}</div>
-                            <small style="color:#666; margin-top:30px; font-size:0.7rem;">&darr; Pull Down &darr;</small>
-                        </div>
-                        <div class="sub-slide layer-2" style="opacity:0;">
-                            <div class="role-label">LOGIC</div>
-                            <div class="content-text">${cfg.logic.txt}</div>
-                        </div>
-                        <div class="sub-slide layer-3" style="opacity:0;">
-                            <div class="role-label">PROOF</div>
-                            <div class="ascii-box">${cfg.proof.ascii}</div>
-                        </div>
-                    </div>`;
-            }
-
-            else if (cfg.type === 'final') {
-                content = `
-                    <div class="slide-header"><span class="header-title">${cfg.title}</span></div>
-                    <div class="carousel-viewport">
-                        <div class="sub-slide layer-1">
-                            <div class="verdict-container">
-                                <div class="choice-header">YOUR ORDER</div>
-                                <div class="input-group" id="final-inputs"></div>
-                                <div class="choice-header">PRIMARY SELECTION</div>
-                                <div class="hero-section">
-                                    <div class="hero-burger" id="hero-burger-name">NO BURGER</div>
-                                    <div class="hero-sub" style="display:none;">FLAME-GRILLED</div>
-                                </div>
-                                <div class="final-actions">
-                                    <button class="btn btn-wa" onclick="sendWhatsappTicket()">SAVE TICKET</button>
-                                    <button class="btn btn-support" onclick="sendSupport()">SUPPORT</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
-            }
-
-            else if (cfg.type === 'brand') {
-                content = `
-                    <div class="slide-header"><span class="header-title">${cfg.title}</span></div>
-                    <div class="carousel-viewport">
-                        <div class="sub-slide layer-1">
-                            <div class="verdict-container" style="justify-content:center;">
-                                <div class="brand-logo-placeholder">H</div>
-                                <div class="choice-header" style="color:var(--brand-orange); margin-bottom:10px;">100% CANADIAN</div>
-                                <h1>THE BURGER BOSS</h1>
-                                <div class="primary-question" style="text-align:center;">"It's a Beautiful Thing"</div>
-                                <div class="content-text" style="text-align:center;">
-                                    Founded in 1959. Harvey's garnishes every burger to order. 
-                                </div>
-                                <div class="final-actions" style="margin-top:40px;">
-                                    <button class="btn btn-share" onclick="copyLink()">SHARE THIS APP</button>
-                                    <button class="btn" onclick="location.reload()">START OVER</button>
-                                    <button class="btn btn-insta" onclick="followInsta()">FOLLOW ON INSTA</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
-            }
-
-            else if (cfg.type === 'contact') {
-                content = `
-                    <div class="slide-header"><span class="header-title">${cfg.title}</span></div>
-                    <div class="carousel-viewport">
-                        <div class="sub-slide layer-1">
-                            <div class="verdict-container" style="justify-content:center; text-align:center;">
-                                <h1>Contact DECIDER</h1>
-                                <div class="b2b-highlight">
-                                    Get <br>
-                                    <span class="b2b-bold">CUSTOM</span> <br>
-                                    Catalogue <br>
-                                    Menu <br>
-                                    for your business purpose
-                                </div>
-                                <div class="final-actions" style="margin-top:40px;">
-                                    <button class="btn btn-wa" onclick="contactDecider()">WHATSAPP US</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
-            }
-
-            section.innerHTML = content;
-            container.appendChild(section);
-        });
-
-        slideElements = Array.from(document.querySelectorAll('.main-slide'));
-        attachEvents();
-    }
-
-    /* =========================================
-       LOGIC ENGINE
-       ========================================= */
-    function updateResult() {
-        const container = document.getElementById('final-inputs');
-        const burgerName = document.getElementById('hero-burger-name');
-        const heroSub = document.querySelector('.hero-sub');
-        
-        if (USER_CART.burger) {
-            burgerName.innerText = USER_CART.burger;
-            heroSub.innerText = "FLAME-GRILLED";
-            heroSub.style.display = 'block';
-        } else {
-            burgerName.innerText = "NO BURGER";
-            heroSub.style.display = 'none';
+            content = `
+                &lt;div class=&quot;slide-header&quot;&gt;&lt;span class=&quot;header-title&quot;&gt;${cfg.title}&lt;/span&gt;&lt;/div&gt;
+                &lt;div class=&quot;carousel-viewport&quot; data-key=&quot;${cfg.key}&quot; data-total=&quot;${keys.length}&quot;&gt;
+                    ${optionsHTML}
+                &lt;/div&gt;`;
         }
 
-        let html = '';
-        const keys = ['chicken', 'side', 'drink', 'timing', 'value']; 
-        
-        let hasItems = false;
-        keys.forEach(k => {
-            if(USER_CART[k]) {
+        // --- BUILDER: STANDARD / LOGIC TYPE ---
+        else if (cfg.type === &#39;standard&#39;) {
+            content = `
+                &lt;div class=&quot;slide-header&quot;&gt;&lt;span class=&quot;header-title&quot;&gt;${cfg.title}&lt;/span&gt;&lt;/div&gt;
+                &lt;div class=&quot;carousel-viewport&quot;&gt;
+                    &lt;div class=&quot;sub-slide layer-1&quot;&gt;
+                        &lt;h1&gt;${cfg.visual.h1}&lt;/h1&gt;
+                        &lt;div class=&quot;primary-question&quot;&gt;${cfg.visual.q}&lt;/div&gt;
+                        &lt;div class=&quot;content-text&quot;&gt;${cfg.visual.txt}&lt;/div&gt;
+                        &lt;small style=&quot;color:#666; margin-top:30px; font-size:0.7rem;&quot;&gt;&amp;darr; Pull Down &amp;darr;&lt;/small&gt;
+                    &lt;/div&gt;
+                    &lt;div class=&quot;sub-slide layer-2&quot; style=&quot;opacity:0;&quot;&gt;
+                        &lt;div class=&quot;role-label&quot;&gt;LOGIC&lt;/div&gt;
+                        &lt;div class=&quot;content-text&quot;&gt;${cfg.logic.txt}&lt;/div&gt;
+                    &lt;/div&gt;
+                    &lt;div class=&quot;sub-slide layer-3&quot; style=&quot;opacity:0;&quot;&gt;
+                        &lt;div class=&quot;role-label&quot;&gt;PROOF&lt;/div&gt;
+                        &lt;div class=&quot;ascii-box&quot;&gt;${cfg.proof.ascii}&lt;/div&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;`;
+        }
+
+        // --- BUILDER: TICKET (DYNAMIC) ---
+        else if (cfg.type === &#39;final&#39;) {
+            content = `
+                &lt;div class=&quot;slide-header&quot;&gt;&lt;span class=&quot;header-title&quot;&gt;${cfg.title}&lt;/span&gt;&lt;/div&gt;
+                &lt;div class=&quot;carousel-viewport&quot;&gt;
+                    &lt;div class=&quot;sub-slide layer-1&quot;&gt;
+                        &lt;div class=&quot;verdict-container&quot;&gt;
+                            &lt;div class=&quot;choice-header&quot;&gt;YOUR ORDER&lt;/div&gt;
+                            &lt;div class=&quot;input-group&quot; id=&quot;final-inputs&quot;&gt;&lt;/div&gt;
+                            &lt;div class=&quot;choice-header&quot;&gt;PRIMARY SELECTION&lt;/div&gt;
+                            &lt;div class=&quot;hero-section&quot;&gt;
+                                &lt;div class=&quot;hero-burger&quot; id=&quot;hero-item-name&quot;&gt;NO SELECTION&lt;/div&gt;
+                                &lt;div class=&quot;hero-sub&quot; style=&quot;display:none;&quot;&gt;PREMIUM CHOICE&lt;/div&gt;
+                            &lt;/div&gt;
+                            &lt;div class=&quot;final-actions&quot;&gt;
+                                &lt;button class=&quot;btn btn-wa&quot; onclick=&quot;sendWhatsappTicket()&quot;&gt;SAVE TICKET&lt;/button&gt;
+                                &lt;button class=&quot;btn btn-support&quot; onclick=&quot;sendSupport()&quot;&gt;SUPPORT&lt;/button&gt;
+                            &lt;/div&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;`;
+        }
+
+        // --- BUILDER: BRAND CARD ---
+        else if (cfg.type === &#39;brand&#39;) {
+            content = `
+                &lt;div class=&quot;slide-header&quot;&gt;&lt;span class=&quot;header-title&quot;&gt;${cfg.title}&lt;/span&gt;&lt;/div&gt;
+                &lt;div class=&quot;carousel-viewport&quot;&gt;
+                    &lt;div class=&quot;sub-slide layer-1&quot;&gt;
+                        &lt;div class=&quot;verdict-container&quot; style=&quot;justify-content:center;&quot;&gt;
+                            &lt;div class=&quot;brand-logo-placeholder&quot;&gt;${CURRENT_DATA.meta.brandName.charAt(0)}&lt;/div&gt;
+                            &lt;div class=&quot;choice-header&quot; style=&quot;color:var(--brand-primary); margin-bottom:10px;&quot;&gt;${CURRENT_DATA.meta.brandName}&lt;/div&gt;
+                            &lt;h1&gt;THE DECIDER&lt;/h1&gt;
+                            &lt;div class=&quot;primary-question&quot; style=&quot;text-align:center;&quot;&gt;Finalize your choice.&lt;/div&gt;
+                            &lt;div class=&quot;final-actions&quot; style=&quot;margin-top:40px;&quot;&gt;
+                                &lt;button class=&quot;btn btn-share&quot; onclick=&quot;copyLink()&quot;&gt;SHARE APP&lt;/button&gt;
+                                &lt;button class=&quot;btn&quot; onclick=&quot;location.reload()&quot;&gt;START OVER&lt;/button&gt;
+                                &lt;button class=&quot;btn btn-insta&quot; onclick=&quot;followInsta()&quot;&gt;FOLLOW&lt;/button&gt;
+                            &lt;/div&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;`;
+        }
+
+        // --- BUILDER: CONTACT ---
+        else if (cfg.type === &#39;contact&#39;) {
+            content = `
+                &lt;div class=&quot;slide-header&quot;&gt;&lt;span class=&quot;header-title&quot;&gt;${cfg.title}&lt;/span&gt;&lt;/div&gt;
+                &lt;div class=&quot;carousel-viewport&quot;&gt;
+                    &lt;div class=&quot;sub-slide layer-1&quot;&gt;
+                        &lt;div class=&quot;verdict-container&quot; style=&quot;justify-content:center; text-align:center;&quot;&gt;
+                            &lt;h1&gt;Contact DECIDER&lt;/h1&gt;
+                            &lt;div class=&quot;b2b-highlight&quot;&gt;
+                                Get <br>
+                                &lt;span class=&quot;b2b-bold&quot;&gt;CUSTOM&lt;/span&gt; <br>
+                                Catalogue <br>
+                                Menu <br>
+                                for your business purpose
+                            &lt;/div&gt;
+                            &lt;div class=&quot;final-actions&quot; style=&quot;margin-top:40px;&quot;&gt;
+                                &lt;button class=&quot;btn btn-wa&quot; onclick=&quot;contactDecider()&quot;&gt;WHATSAPP US&lt;/button&gt;
+                            &lt;/div&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;`;
+        }
+
+        section.innerHTML = content;
+        container.appendChild(section);
+    });
+
+    slideElements = Array.from(document.querySelectorAll(&#39;.main-slide&#39;));
+    attachEvents();
+}
+
+/* =========================================
+   DYNAMIC LOGIC ENGINE
+   ========================================= */
+function updateResult() {
+    if(!CURRENT_DATA) return;
+
+    const container = document.getElementById(&#39;final-inputs&#39;);
+    const heroName = document.getElementById(&#39;hero-item-name&#39;);
+    const heroSub = document.querySelector(&#39;.hero-sub&#39;);
+    
+    // 1. Find the &quot;Hero&quot; Item (defined in JSON by role=&quot;hero&quot; or default to first selector)
+    let heroKey = null;
+    const heroSlide = CURRENT_DATA.slides.find(s =&gt; s.role === &#39;hero&#39;) || CURRENT_DATA.slides.find(s =&gt; s.type === &#39;selector&#39;);
+    if(heroSlide) heroKey = heroSlide.key;
+
+    if (heroKey &amp;&amp; USER_CART[heroKey]) {
+        heroName.innerText = USER_CART[heroKey];
+        heroSub.style.display = &#39;block&#39;;
+    } else {
+        heroName.innerText = &quot;NO SELECTION&quot;;
+        heroSub.style.display = &#39;none&#39;;
+    }
+
+    // 2. Build List Dynamically from Config
+    let html = &#39;&#39;;
+    let hasItems = false;
+    
+    // Loop through all selector slides to generate receipt
+    CURRENT_DATA.slides.forEach(s =&gt; {
+        if(s.type === &#39;selector&#39; &amp;&amp; s.key) {
+            // Skip the hero item in the list if you want, or include it. 
+            // Here we include everything except maybe the hero if redundant, but let&#39;s list all.
+            if(USER_CART[s.key]) {
                 hasItems = true;
-                html += `
-                <div class="input-row">
-                    <span class="input-key">${k.toUpperCase()}</span>
-                    <span class="input-val">${USER_CART[k]}</span>
-                </div>`;
+                // Don&#39;t duplicate the hero in the list if it&#39;s already big displayed? 
+                // Let&#39;s just list everything for clarity.
+                 html += `
+                &lt;div class=&quot;input-row&quot;&gt;
+                    &lt;span class=&quot;input-key&quot;&gt;${s.key.toUpperCase()}&lt;/span&gt;
+                    &lt;span class=&quot;input-val&quot;&gt;${USER_CART[s.key]}&lt;/span&gt;
+                &lt;/div&gt;`;
             }
+        }
+    });
+    
+    if (!hasItems) {
+        html = &#39;&lt;div style=&quot;text-align:center; color:#666; padding:20px;&quot;&gt;Cart is empty.<br>Speak or swipe to add items.&lt;/div&gt;&#39;;
+    }
+    
+    container.innerHTML = html;
+}
+
+function sendWhatsappTicket() {
+    let msg = `MY ${CURRENT_DATA.meta.brandName} ORDER:\n`;
+    Object.keys(USER_CART).forEach(k =&gt; msg += `- ${k.toUpperCase()}: ${USER_CART[k]}\n`);
+    window.open(`https://wa.me/${CURRENT_DATA.meta.supportPhone}?text=${encodeURIComponent(msg)}`, &#39;_blank&#39;);
+}
+
+function sendSupport() {
+    const msg = &quot;I needed assistance with my order flow.&quot;;
+    window.open(`https://wa.me/${CURRENT_DATA.meta.supportPhone}?text=${encodeURIComponent(msg)}`, &#39;_blank&#39;);
+}
+
+function contactDecider() {
+    window.open(&#39;[https://wa.me/916351537770?text=I%27m%20interested](https://wa.me/916351537770?text=I%27m%20interested)&#39;, &#39;_blank&#39;);
+}
+
+function copyLink() {
+    if(CURRENT_DATA.meta.brandUrl) {
+        navigator.clipboard.writeText(CURRENT_DATA.meta.brandUrl).then(() =&gt; {
+            showToast(&#39;LINK COPIED TO CLIPBOARD&#39;);
         });
-        
-        if (!hasItems && !USER_CART.burger) {
-            html = '<div style="text-align:center; color:#666; padding:20px;">Cart is empty.<br>Speak or swipe to add items.</div>';
-        }
-        
-        container.innerHTML = html;
-    }
-
-    function sendWhatsappTicket() {
-        let msg = "MY HARVEY'S ORDER:\n";
-        Object.keys(USER_CART).forEach(k => msg += `- ${k.toUpperCase()}: ${USER_CART[k]}\n`);
-        window.open(`https://wa.me/916351537770?text=${encodeURIComponent(msg)}`, '_blank');
-    }
-
-    function sendSupport() {
-        const msg = "I needed assistance with my order flow. Thanks!. How can I Support";
-        window.open(`https://wa.me/916351537770?text=${encodeURIComponent(msg)}`, '_blank');
-    }
-
-    function contactDecider() {
-        window.open('https://wa.me/916351537770?text=I%27m%20interested', '_blank');
-    }
-
-    function copyLink() {
-        const url = "https://dharamdaxini.github.io/via.decide.food/";
-        navigator.clipboard.writeText(url).then(() => {
-            showToast('LINK COPIED TO CLIPBOARD');
+    } else {
+         navigator.clipboard.writeText(window.location.href).then(() =&gt; {
+            showToast(&#39;URL COPIED&#39;);
         });
     }
+}
 
-    function followInsta() {
-        window.open('https://www.instagram.com/harveys?igsh=MWY0M3VyemQ2NHFjZw==', '_blank');
+function followInsta() {
+    if(CURRENT_DATA.meta.instaUrl) window.open(CURRENT_DATA.meta.instaUrl, &#39;_blank&#39;);
+}
+
+function showToast(msg) {
+    const t = document.getElementById(&#39;toast&#39;);
+    t.innerText = msg;
+    t.classList.add(&#39;visible&#39;);
+    setTimeout(() =&gt; t.classList.remove(&#39;visible&#39;), 2000);
+}
+
+function goToSlide(idx) {
+    if (idx &lt; 0 || idx &gt;= slideElements.length) return;
+
+    const curr = slideElements[currentIdx];
+    curr.classList.remove(&#39;active&#39;, &#39;deck-active&#39;);
+    
+    if (idx &gt; currentIdx) {
+        curr.classList.add(&#39;prev&#39;);
+        curr.classList.remove(&#39;next&#39;);
+    } else {
+        curr.classList.add(&#39;next&#39;);
+        curr.classList.remove(&#39;prev&#39;);
+    }
+    
+    const deck = curr.querySelector(&#39;.carousel-viewport&#39;)._deck;
+    if(deck &amp;&amp; deck.slides) updateLayers(deck.slides, 0);
+
+    currentIdx = idx;
+    const next = slideElements[currentIdx];
+    
+    next.classList.remove(&#39;prev&#39;, &#39;next&#39;);
+    next.classList.add(&#39;active&#39;);
+
+    if(next.id === &#39;final&#39;) updateResult();
+
+    dragRatio = 0;
+    document.getElementById(&#39;depth-fill&#39;).style.height = &#39;0%&#39;;
+}
+
+function updateLayers(slides, ratio) {
+    if(!slides[0]) return; 
+    if(slides[0].closest(&#39;.main-slide&#39;).dataset.mode === &#39;options&#39;) return;
+
+    const vis = slides[0];
+    const log = slides[1];
+    const prf = slides[2];
+
+    if (ratio &gt; 0.1) {
+        vis.style.transform = `translateY(${ratio * -80}px) scale(${1 - ratio*0.1})`;
+        vis.style.opacity = Math.max(0, 1 - ratio*3);
+    } else {
+        vis.style.transform = &#39;&#39;; vis.style.opacity = 1;
     }
 
-    function showToast(msg) {
-        const t = document.getElementById('toast');
-        t.innerText = msg;
-        t.classList.add('visible');
-        setTimeout(() => t.classList.remove('visible'), 2000);
-    }
-
-    function goToSlide(idx) {
-        if (idx < 0 || idx >= slideElements.length) return;
-
-        const curr = slideElements[currentIdx];
-        curr.classList.remove('active', 'deck-active');
-        
-        if (idx > currentIdx) {
-            curr.classList.add('prev');
-            curr.classList.remove('next');
+    if (log) {
+        if (ratio &gt; 0.25 &amp;&amp; ratio &lt; 0.65) {
+            log.style.opacity = Math.min(1, (ratio - 0.25) * 4);
+            log.style.transform = `translateY(${100 - (ratio-0.25)*300}px)`;
+        } else if (ratio &gt; 0.65) {
+            log.style.opacity = Math.max(0, 1 - (ratio - 0.65) * 4);
+            log.style.transform = `translateY(-50px)`;
         } else {
-            curr.classList.add('next');
-            curr.classList.remove('prev');
+            log.style.opacity = 0; log.style.transform = `translateY(100px)`;
         }
-        
-        const deck = curr.querySelector('.carousel-viewport')._deck;
-        if(deck && deck.slides) updateLayers(deck.slides, 0);
-
-        currentIdx = idx;
-        const next = slideElements[currentIdx];
-        
-        next.classList.remove('prev', 'next');
-        next.classList.add('active');
-
-        if(next.id === 'final') updateResult();
-
-        dragRatio = 0;
-        document.getElementById('depth-fill').style.height = '0%';
     }
 
-    function updateLayers(slides, ratio) {
-        if(!slides[0]) return; 
-        if(slides[0].closest('.main-slide').dataset.mode === 'options') return;
-
-        const vis = slides[0];
-        const log = slides[1];
-        const prf = slides[2];
-
-        if (ratio > 0.1) {
-            vis.style.transform = `translateY(${ratio * -80}px) scale(${1 - ratio*0.1})`;
-            vis.style.opacity = Math.max(0, 1 - ratio*3);
+    if (prf) {
+        if (ratio &gt; 0.55) {
+            prf.style.opacity = Math.min(1, (ratio - 0.55) * 4);
+            prf.style.transform = `translateY(${100 - (ratio-0.55)*300}px)`;
         } else {
-            vis.style.transform = ''; vis.style.opacity = 1;
-        }
-
-        if (log) {
-            if (ratio > 0.25 && ratio < 0.65) {
-                log.style.opacity = Math.min(1, (ratio - 0.25) * 4);
-                log.style.transform = `translateY(${100 - (ratio-0.25)*300}px)`;
-            } else if (ratio > 0.65) {
-                log.style.opacity = Math.max(0, 1 - (ratio - 0.65) * 4);
-                log.style.transform = `translateY(-50px)`;
-            } else {
-                log.style.opacity = 0; log.style.transform = `translateY(100px)`;
-            }
-        }
-
-        if (prf) {
-            if (ratio > 0.55) {
-                prf.style.opacity = Math.min(1, (ratio - 0.55) * 4);
-                prf.style.transform = `translateY(${100 - (ratio-0.55)*300}px)`;
-            } else {
-                prf.style.opacity = 0; prf.style.transform = `translateY(100px)`;
-            }
-        }
-
-        const bar = document.getElementById('depth-fill');
-        bar.style.height = (ratio * 100) + '%';
-        if(ratio < 0.3) bar.style.background = '#333';
-        else if(ratio < 0.6) bar.style.background = '#ff671f';
-        else if(ratio < 0.9) bar.style.background = '#00e676';
-        else bar.style.background = '#fff';
-    }
-
-    /* =========================================
-       NLP ENGINE
-       ========================================= */
-    let isListening = false;
-    let recognition;
-
-    function toggleListenMode() {
-        if (!('webkitSpeechRecognition' in window)) return alert("Browser not supported. Try Chrome/Safari.");
-        
-        const btn = document.getElementById('mic-toggle');
-        const feedback = document.getElementById('voice-feedback');
-        
-        if (isListening) {
-            recognition.stop();
-            isListening = false;
-            btn.classList.remove('listening');
-            feedback.classList.remove('visible');
-        } else {
-            recognition = new webkitSpeechRecognition();
-            recognition.continuous = false;
-            recognition.lang = 'en-US';
-            
-            recognition.onstart = () => { 
-                isListening = true; 
-                btn.classList.add('listening'); 
-                feedback.classList.add('visible');
-                feedback.innerText = "LISTENING...";
-            };
-            recognition.onend = () => { 
-                isListening = false; 
-                btn.classList.remove('listening'); 
-                feedback.classList.remove('visible');
-            };
-            
-            recognition.onresult = (e) => {
-                const txt = e.results[0][0].transcript.toLowerCase();
-                feedback.innerText = `HEARD: "${txt}"`;
-                setTimeout(() => processVoice(txt), 500); // Small delay for visual read
-            };
-            recognition.start();
+            prf.style.opacity = 0; prf.style.transform = `translateY(100px)`;
         }
     }
 
-    function processVoice(cmd) {
-        // 1. Navigation
-        if (cmd.includes("next")) return goToSlide(currentIdx + 1);
-        if (cmd.includes("back")) return goToSlide(currentIdx - 1);
-        if (cmd.includes("start over") || cmd.includes("reset")) return location.reload();
+    const bar = document.getElementById(&#39;depth-fill&#39;);
+    bar.style.height = (ratio * 100) + &#39;%&#39;;
+    if(ratio &lt; 0.3) bar.style.background = &#39;#333&#39;;
+    else if(ratio &lt; 0.6) bar.style.background = CURRENT_DATA.meta.primaryColor;
+    else if(ratio &lt; 0.9) bar.style.background = CURRENT_DATA.meta.accentColor;
+    else bar.style.background = &#39;#fff&#39;;
+}
 
-        // 2. Actions
-        if (cmd.includes("ticket") || cmd.includes("save")) return sendWhatsappTicket();
-        if (cmd.includes("support")) return sendSupport();
-        if (cmd.includes("share")) return copyLink();
+/* =========================================
+   NLP ENGINE (DYNAMIC VOCABULARY)
+   ========================================= */
+let isListening = false;
+let recognition;
 
-        // 3. NLP Intent: Add vs Remove
-        const isRemove = cmd.match(/\b(remove|delete|no|clear|cancel|without)\b/);
+function toggleListenMode() {
+    if (!(&#39;webkitSpeechRecognition&#39; in window)) return alert(&quot;Browser not supported. Try Chrome/Safari.&quot;);
+    
+    const btn = document.getElementById(&#39;mic-toggle&#39;);
+    const feedback = document.getElementById(&#39;voice-feedback&#39;);
+    
+    if (isListening) {
+        recognition.stop();
+        isListening = false;
+        btn.classList.remove(&#39;listening&#39;);
+        feedback.classList.remove(&#39;visible&#39;);
+    } else {
+        recognition = new webkitSpeechRecognition();
+        recognition.continuous = false;
+        recognition.lang = &#39;en-US&#39;;
         
-        // 4. Scan Config for Matches
-        CONFIG.slides.forEach(s => {
-            if (s.type === 'selector') {
-                Object.keys(s.options).forEach(optKey => {
-                    const opt = s.options[optKey];
-                    // Check if any voice trigger exists in the command
-                    if (opt.voice && opt.voice.some(v => cmd.includes(v))) {
-                        
-                        if (isRemove) {
-                            if(USER_CART[s.key] === optKey) {
-                                delete USER_CART[s.key];
-                                showToast(`REMOVED: ${optKey}`);
-                            }
-                        } else {
-                            USER_CART[s.key] = optKey;
-                            showToast(`ADDED: ${optKey}`);
+        recognition.onstart = () =&gt; { 
+            isListening = true; 
+            btn.classList.add(&#39;listening&#39;); 
+            feedback.classList.add(&#39;visible&#39;);
+            feedback.innerText = &quot;LISTENING...&quot;;
+        };
+        recognition.onend = () =&gt; { 
+            isListening = false; 
+            btn.classList.remove(&#39;listening&#39;); 
+            feedback.classList.remove(&#39;visible&#39;);
+        };
+        
+        recognition.onresult = (e) =&gt; {
+            const txt = e.results[0][0].transcript.toLowerCase();
+            feedback.innerText = `HEARD: &quot;${txt}&quot;`;
+            setTimeout(() =&gt; processVoice(txt), 500); 
+        };
+        recognition.start();
+    }
+}
+
+function processVoice(cmd) {
+    if(!CURRENT_DATA) return;
+
+    // 1. Navigation
+    if (cmd.includes(&quot;next&quot;)) return goToSlide(currentIdx + 1);
+    if (cmd.includes(&quot;back&quot;)) return goToSlide(currentIdx - 1);
+    if (cmd.includes(&quot;start over&quot;) || cmd.includes(&quot;reset&quot;)) return location.reload();
+
+    // 2. Actions
+    if (cmd.includes(&quot;ticket&quot;) || cmd.includes(&quot;save&quot;)) return sendWhatsappTicket();
+    if (cmd.includes(&quot;support&quot;)) return sendSupport();
+    if (cmd.includes(&quot;share&quot;)) return copyLink();
+
+    // 3. Scan Config for Matches
+    const isRemove = cmd.match(/\b(remove|delete|no|clear|cancel|without)\b/);
+    
+    CURRENT_DATA.slides.forEach(s =&gt; {
+        if (s.type === &#39;selector&#39;) {
+            Object.keys(s.options).forEach(optKey =&gt; {
+                const opt = s.options[optKey];
+                // Check triggers
+                if (opt.voice &amp;&amp; opt.voice.some(v =&gt; cmd.includes(v))) {
+                    
+                    if (isRemove) {
+                        if(USER_CART[s.key] === optKey) {
+                            delete USER_CART[s.key];
+                            showToast(`REMOVED: ${optKey}`);
                         }
-                        
-                        // Hot Reload Ticket if Visible
-                        if(slideElements[currentIdx].id === 'final') updateResult();
-                    }
-                });
-            }
-        });
-    }
-
-    /* =========================================
-       TOUCH ENGINE
-       ========================================= */
-    function attachEvents() {
-        let startX = 0, startY = 0;
-
-        document.querySelectorAll('.carousel-viewport').forEach(view => {
-            const slides = Array.from(view.querySelectorAll('.sub-slide'));
-            view._deck = { slides, currOpt: 0 };
-            
-            let isDragging = false;
-            let axis = null;
-
-            view.addEventListener('touchstart', e => {
-                startX = e.touches[0].clientX;
-                startY = e.touches[0].clientY;
-                isDragging = true;
-                axis = null;
-            }, {passive: true});
-
-            view.addEventListener('touchmove', e => {
-                if(!isDragging) return;
-                const dx = e.touches[0].clientX - startX;
-                const dy = e.touches[0].clientY - startY;
-
-                if(!axis) axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
-
-                const parentSlide = view.closest('.main-slide');
-                const isOptions = parentSlide.dataset.mode === 'options';
-
-                if(axis === 'y' && dy < 0) return; 
-
-                if(isOptions) {
-                    if(axis === 'x') slides.forEach(s => s.style.transform = `translateX(${dx}px)`);
-                    if(axis === 'y' && dy > 0) slides.forEach(s => s.style.transform = `translateY(${dy * 0.3}px)`);
-                    return;
-                }
-
-                if(axis === 'y' && dy > 0) {
-                    e.preventDefault();
-                    dragRatio = Math.min(dy / MAX_DRAG, 1);
-                    updateLayers(view._deck.slides, dragRatio);
-                    parentSlide.classList.add('deck-active');
-                }
-            }, {passive: false});
-
-            view.addEventListener('touchend', e => {
-                if(!isDragging) return;
-                isDragging = false;
-                
-                const dx = e.changedTouches[0].clientX - startX;
-                const dy = e.changedTouches[0].clientY - startY;
-                const parentSlide = view.closest('.main-slide');
-                const isOptions = parentSlide.dataset.mode === 'options';
-
-                if (axis === 'y' && dy < -60) {
-                    if (currentIdx > 0) {
-                        goToSlide(currentIdx - 1);
-                        return;
-                    }
-                }
-
-                if(isOptions) {
-                    const key = view.dataset.key;
-                    const total = parseInt(view.dataset.total);
-                    let curr = view._deck.currOpt;
-
-                    if(axis === 'x' && Math.abs(dx) > 50) {
-                        if(dx < 0 && curr < total - 1) curr++; 
-                        else if(dx > 0 && curr > 0) curr--;   
-                        
-                        view._deck.currOpt = curr;
-                        
-                        slides.forEach((s, i) => {
-                            if(i === curr) {
-                                s.classList.remove('opt-hidden');
-                                s.classList.add('opt-active');
-                                USER_CART[key] = s.dataset.val;
-                            } else {
-                                s.classList.remove('opt-active');
-                                s.classList.add('opt-hidden');
-                            }
-                        });
+                    } else {
+                        USER_CART[s.key] = optKey;
+                        showToast(`ADDED: ${optKey}`);
                     }
                     
-                    slides.forEach(s => s.style.transform = '');
-
-                    if(axis === 'y' && dy > 60) {
-                        if(!USER_CART[key]) USER_CART[key] = slides[view._deck.currOpt].dataset.val;
-                        goToSlide(currentIdx + 1);
-                    }
-                    return;
-                }
-
-                if(axis === 'y' && dy > 0) {
-                    if(dragRatio > TRIGGER_THRESHOLD) {
-                        goToSlide(currentIdx + 1);
-                    } else {
-                        parentSlide.classList.remove('deck-active');
-                        updateLayers(view._deck.slides, 0);
-                        document.getElementById('depth-fill').style.height = '0%';
-                    }
-                    dragRatio = 0;
+                    if(slideElements[currentIdx].id === &#39;final&#39;) updateResult();
                 }
             });
-        });
-    }
+        }
+    });
+}
 
-    init(); // BOOT
+/* =========================================
+   TOUCH ENGINE
+   ========================================= */
+function attachEvents() {
+    let startX = 0, startY = 0;
+
+    document.querySelectorAll(&#39;.carousel-viewport&#39;).forEach(view =&gt; {
+        const slides = Array.from(view.querySelectorAll(&#39;.sub-slide&#39;));
+        view._deck = { slides, currOpt: 0 };
+        
+        let isDragging = false;
+        let axis = null;
+
+        view.addEventListener(&#39;touchstart&#39;, e =&gt; {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+            isDragging = true;
+            axis = null;
+        }, {passive: true});
+
+        view.addEventListener(&#39;touchmove&#39;, e =&gt; {
+            if(!isDragging) return;
+            const dx = e.touches[0].clientX - startX;
+            const dy = e.touches[0].clientY - startY;
+
+            if(!axis) axis = Math.abs(dx) &gt; Math.abs(dy) ? &#39;x&#39; : &#39;y&#39;;
+
+            const parentSlide = view.closest(&#39;.main-slide&#39;);
+            const isOptions = parentSlide.dataset.mode === &#39;options&#39;;
+
+            if(axis === &#39;y&#39; &amp;&amp; dy &lt; 0) return; 
+
+            if(isOptions) {
+                if(axis === &#39;x&#39;) slides.forEach(s =&gt; s.style.transform = `translateX(${dx}px)`);
+                if(axis === &#39;y&#39; &amp;&amp; dy &gt; 0) slides.forEach(s =&gt; s.style.transform = `translateY(${dy * 0.3}px)`);
+                return;
+            }
+
+            if(axis === &#39;y&#39; &amp;&amp; dy &gt; 0) {
+                e.preventDefault();
+                dragRatio = Math.min(dy / MAX_DRAG, 1);
+                updateLayers(view._deck.slides, dragRatio);
+                parentSlide.classList.add(&#39;deck-active&#39;);
+            }
+        }, {passive: false});
+
+        view.addEventListener(&#39;touchend&#39;, e =&gt; {
+            if(!isDragging) return;
+            isDragging = false;
+            
+            const dx = e.changedTouches[0].clientX - startX;
+            const dy = e.changedTouches[0].clientY - startY;
+            const parentSlide = view.closest(&#39;.main-slide&#39;);
+            const isOptions = parentSlide.dataset.mode === &#39;options&#39;;
+
+            if (axis === &#39;y&#39; &amp;&amp; dy &lt; -60) {
+                if (currentIdx &gt; 0) {
+                    goToSlide(currentIdx - 1);
+                    return;
+                }
+            }
+
+            if(isOptions) {
+                const key = view.dataset.key;
+                const total = parseInt(view.dataset.total);
+                let curr = view._deck.currOpt;
+
+                if(axis === &#39;x&#39; &amp;&amp; Math.abs(dx) &gt; 50) {
+                    if(dx &lt; 0 &amp;&amp; curr &lt; total - 1) curr++; 
+                    else if(dx &gt; 0 &amp;&amp; curr &gt; 0) curr--;   
+                    
+                    view._deck.currOpt = curr;
+                    
+                    slides.forEach((s, i) =&gt; {
+                        if(i === curr) {
+                            s.classList.remove(&#39;opt-hidden&#39;);
+                            s.classList.add(&#39;opt-active&#39;);
+                            USER_CART[key] = s.dataset.val;
+                        } else {
+                            s.classList.remove(&#39;opt-active&#39;);
+                            s.classList.add(&#39;opt-hidden&#39;);
+                        }
+                    });
+                }
+                
+                slides.forEach(s =&gt; s.style.transform = &#39;&#39;);
+
+                if(axis === &#39;y&#39; &amp;&amp; dy &gt; 60) {
+                    if(!USER_CART[key]) USER_CART[key] = slides[view._deck.currOpt].dataset.val;
+                    goToSlide(currentIdx + 1);
+                }
+                return;
+            }
+
+            if(axis === &#39;y&#39; &amp;&amp; dy &gt; 0) {
+                if(dragRatio &gt; TRIGGER_THRESHOLD) {
+                    goToSlide(currentIdx + 1);
+                } else {
+                    parentSlide.classList.remove(&#39;deck-active&#39;);
+                    updateLayers(view._deck.slides, 0);
+                    document.getElementById(&#39;depth-fill&#39;).style.height = &#39;0%&#39;;
+                }
+                dragRatio = 0;
+            }
+        });
+    });
+}
+
+init(); 
+
+```
 
 </script>
+
 </body>
 </html>
