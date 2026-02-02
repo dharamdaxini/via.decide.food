@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Harvey's Decision Engine | SWIPE-OS v4.12</title>
+    <title>Harvey's Decision Engine | SWIPE-OS v4.13</title>
     <style>
         /* =========================================
            CORE SYSTEM
@@ -146,7 +146,7 @@
         }
 
         /* =========================================
-           VERDICT REDESIGN
+           VERDICT & BRAND REDESIGN
            ========================================= */
         .verdict-container {
             display: flex;
@@ -208,6 +208,22 @@
             letter-spacing: 2px;
         }
 
+        /* Slide 13 Logo Placeholder */
+        .brand-logo-placeholder {
+            width: 80px;
+            height: 80px;
+            background: #222;
+            border-radius: 50%;
+            margin: 0 auto 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--brand-orange);
+            color: var(--brand-orange);
+            font-weight: 900;
+            font-size: 1.5rem;
+        }
+
         .final-actions {
             display: grid;
             gap: 12px;
@@ -223,9 +239,17 @@
             font-weight: 600;
             text-align: center;
             font-size: 0.9rem;
+            cursor: pointer;
         }
+        .btn:active { transform: scale(0.98); }
+        
         .btn-wa { background: #25D366; color: #000; border: none; }
         .btn-support { background: transparent; border: 1px solid #444; color: #888; }
+        .btn-share { background: var(--brand-orange); color: #fff; border: none; }
+        .btn-insta { 
+            background: linear-gradient(45deg, #405de6, #5851db, #833ab4, #c13584, #e1306c, #fd1d1d);
+            color: white; border: none;
+        }
 
         #depth-fill {
             position: fixed; right: 0; top: 0; bottom: 0; width: 4px;
@@ -233,12 +257,23 @@
             height: 0%; transition: height 0.05s linear, background 0.3s;
         }
 
+        /* Toast for copy feedback */
+        .toast-msg {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: #222; color: #00e676; padding: 12px 24px;
+            border: 1px solid #00e676;
+            border-radius: 30px; font-size: 0.8rem; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s; z-index: 1000; font-family: var(--font-tech);
+        }
+        .toast-msg.visible { opacity: 1; }
+
     </style>
 </head>
 <body>
 
 <div id="master-container"></div>
 <div id="depth-fill"></div>
+<div id="toast" class="toast-msg">LINK COPIED TO CLIPBOARD</div>
 
 <script>
     /* =========================================
@@ -251,7 +286,7 @@
         {
           "id": "burger",
           "type": "selector",
-          "title": "01 / 12 · FLAME-GRILLED BURGERS",
+          "title": "01 / 13 · FLAME-GRILLED BURGERS",
           "key": "burger",
           "options": {
             "ORIGINAL": {
@@ -275,7 +310,7 @@
         {
           "id": "chicken",
           "type": "selector",
-          "title": "02 / 12 · CHICKEN & WRAPS",
+          "title": "02 / 13 · CHICKEN & WRAPS",
           "key": "chicken",
           "options": {
             "CRISPY": {
@@ -297,7 +332,7 @@
         {
           "id": "sides",
           "type": "selector",
-          "title": "03 / 12 · SIDES & POUTINES",
+          "title": "03 / 13 · SIDES & POUTINES",
           "key": "side",
           "options": {
             "POUTINE": {
@@ -316,7 +351,7 @@
         {
           "id": "value",
           "type": "selector",
-          "title": "04 / 12 · VALUE PICKS",
+          "title": "04 / 13 · VALUE PICKS",
           "key": "value",
           "options": {
             "JR_BURGERS": {
@@ -341,7 +376,7 @@
         {
           "id": "drinks",
           "type": "selector",
-          "title": "05 / 12 · DRINKS & TREATS",
+          "title": "05 / 13 · DRINKS & TREATS",
           "key": "drink",
           "options": {
             "SHAKES": {
@@ -359,17 +394,17 @@
             }
           }
         },
-        // 6. FINAL VERDICT (MOVED HERE)
+        // 6. ORDER TICKET (MID-FLOW CHECKPOINT)
         {
           "id": "final",
           "type": "final",
-          "title": "06 / 12 · ORDER TICKET"
+          "title": "06 / 13 · ORDER TICKET"
         },
         // 7. HUNGER
         {
           "id": "hunger",
           "type": "standard",
-          "title": "07 / 12 · HUNGER CALIBRATION",
+          "title": "07 / 13 · HUNGER CALIBRATION",
           "visual": {
             "h1": "HOW HUNGRY?",
             "q": "Calibrating protein requirements.",
@@ -386,7 +421,7 @@
         {
           "id": "timing",
           "type": "selector",
-          "title": "08 / 12 · TIMING STRATEGY",
+          "title": "08 / 13 · TIMING STRATEGY",
           "key": "timing",
           "options": {
             "OFF-PEAK": {
@@ -405,7 +440,7 @@
         {
           "id": "consistency",
           "type": "standard",
-          "title": "09 / 12 · HUMAN FACTOR",
+          "title": "09 / 13 · HUMAN FACTOR",
           "visual": {
             "h1": "EXECUTION RISK",
             "q": "Can you tolerate inconsistency?",
@@ -422,7 +457,7 @@
         {
           "id": "patty-logic",
           "type": "standard",
-          "title": "10 / 12 · PATTY ARCHITECTURE",
+          "title": "10 / 13 · PATTY ARCHITECTURE",
           "visual": {
             "h1": "TEXTURE PROFILE",
             "q": "The Mouthfeel Difference.",
@@ -439,7 +474,7 @@
         {
           "id": "method",
           "type": "standard",
-          "title": "11 / 12 · THE RITUAL",
+          "title": "11 / 13 · THE RITUAL",
           "visual": {
             "h1": "GARNISH CONTROL",
             "q": "Why Harvey’s feels different",
@@ -456,7 +491,7 @@
         {
           "id": "value-stack",
           "type": "standard",
-          "title": "12 / 12 · VALUE STACKING",
+          "title": "12 / 13 · VALUE STACKING",
           "visual": {
             "h1": "MINIMIZE SPEND",
             "q": "Don't pay menu price.",
@@ -468,6 +503,12 @@
           "proof": {
             "ascii": "[ SAVINGS ]\nCoupon : -$4.00\nCAA    : -$1.50\nPoints : -$0.80"
           }
+        },
+        // 13. BRAND END CARD (NEW)
+        {
+          "id": "brand-end",
+          "type": "brand",
+          "title": "13 / 13 · THE NATIONAL CHAMPION"
         }
       ]
     };
@@ -492,7 +533,7 @@
     const TRIGGER_THRESHOLD = 0.9;
 
     function init() {
-        console.log("BOOTING SWIPE-OS v4.12...");
+        console.log("BOOTING SWIPE-OS v4.13...");
         
         CONFIG.slides.forEach((cfg, idx) => {
             const section = document.createElement('section');
@@ -569,11 +610,35 @@
                                 <div class="hero-section">
                                     <div class="hero-burger" id="hero-burger-name">ANGUS</div>
                                     <div class="hero-sub">FLAME-GRILLED</div>
-                                    
-                                </div>
+                                                                    </div>
                                 <div class="final-actions">
                                     <button class="btn btn-wa" onclick="sendWhatsappTicket()">SAVE TICKET</button>
                                     <button class="btn btn-support" onclick="sendSupport()">SUPPORT</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+
+            else if (cfg.type === 'brand') {
+                content = `
+                    <div class="slide-header"><span class="header-title">${cfg.title}</span></div>
+                    <div class="carousel-viewport">
+                        <div class="sub-slide layer-1">
+                            <div class="verdict-container" style="justify-content:center;">
+                                <div class="brand-logo-placeholder">H</div>
+                                <div class="choice-header" style="color:var(--brand-orange); margin-bottom:10px;">100% CANADIAN</div>
+                                <h1>THE BURGER BOSS</h1>
+                                <div class="primary-question" style="text-align:center;">"It's a Beautiful Thing"</div>
+                                <div class="content-text" style="text-align:center;">
+                                    Founded in 1959. Harvey's garnishes every burger to order. 
+                                    No heat lamps. No hidden kitchens. 
+                                    Just you and the grill.
+                                </div>
+                                                                <div class="final-actions" style="margin-top:40px;">
+                                    <button class="btn btn-share" onclick="copyLink()">SHARE THIS APP</button>
+                                    <button class="btn" onclick="location.reload()">START OVER</button>
+                                    <button class="btn btn-insta" onclick="followInsta()">FOLLOW ON INSTA</button>
                                 </div>
                             </div>
                         </div>
@@ -612,17 +677,32 @@
         container.innerHTML = html;
     }
 
-    // NEW: Clean Ticket (No Brand Name)
+    // Ticket Logic with Brand Header
     function sendWhatsappTicket() {
-        let msg = "ORDER TICKET:\n";
+        let msg = "MY HARVEY'S ORDER:\n";
         Object.keys(USER_CART).forEach(k => msg += `- ${k.toUpperCase()}: ${USER_CART[k]}\n`);
         window.open(`https://wa.me/916351537770?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
-    // NEW: Support Action
+    // Support Action
     function sendSupport() {
         const msg = "I needed assistance with my order flow. Thanks!. How can I Support";
         window.open(`https://wa.me/916351537770?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    // Share Link Action
+    function copyLink() {
+        const url = "https://dharamdaxini.github.io/via.decide.food/";
+        navigator.clipboard.writeText(url).then(() => {
+            const t = document.getElementById('toast');
+            t.classList.add('visible');
+            setTimeout(() => t.classList.remove('visible'), 2000);
+        });
+    }
+
+    // Follow Insta Action
+    function followInsta() {
+        window.open('https://www.instagram.com/harveys?igsh=MWY0M3VyemQ2NHFjZw==', '_blank');
     }
 
     function goToSlide(idx) {
