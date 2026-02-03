@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>| food.decide | v16.5 Final</title>
+    <title>| food.decide | [ your title here ]</title>
 
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0a0a0a">
@@ -195,8 +195,21 @@
         container.appendChild(final);
 
         const biz = document.createElement('section'); biz.className = 'main-slide next'; biz.id = 'business';
-        biz.innerHTML = `<div class="sub-slide static"><div class="biz-card"><span class="biz-tagline">POWERED BY KUTCH AUTOMATION</span><div class="biz-title">BUILD YOUR OWN ENGINE</div><div class="final-actions"><button class="btn btn-wa" onclick="sendWa()">CHAT WITH 916351537770</button><button class="btn" onclick="location.reload()">RESTART</button></div></div></div>`;
-        container.appendChild(biz);
+        biz.innerHTML = `
+<div class="sub-slide static">
+  <div class="biz-card">
+    <span class="biz-tagline">POWERED BY KUTCH AUTOMATION</span>
+    <div class="biz-title">BUILD YOUR OWN ENGINE</div>
+    <div class="biz-desc" style="margin:12px 0 24px 0; color:#aaa; font-size:0.85rem; line-height:1.4;">
+      You just used one.<br>
+      This is how decisions move without platforms.
+    </div>
+    <div class="final-actions">
+      <button class="btn btn-wa" onclick="sendWa()">CHAT WITH AI</button>
+      <button class="btn" onclick="location.reload()">RESTART</button>
+    </div>
+  </div>
+</div>`;
         
         slideElements = Array.from(document.querySelectorAll('.main-slide'));
         slideElements[0].className = "main-slide active";
@@ -322,7 +335,9 @@
         }
         msg += "----------------\n";
         msg += `💰 *Est. Total: ₹${total}*\n`;
-        msg += `📍 Location: Gandhidham`;
+        msg += `📍 Location: Gandhidham\n-------------------\n
+get customized "PRE-loaded"-- inquiry like above for your business/personal need with support of log - management \n-------------------\n
+“You decide once. We handle the rest.”`;
         window.open(`https://wa.me/916351537770?text=${encodeURIComponent(msg)}`, '_blank');
     }
     
